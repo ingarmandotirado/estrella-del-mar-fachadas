@@ -86,7 +86,14 @@ const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0],
   const me = add(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] - b[1]) < .05;
   if (hz && (Math.abs(mz + 15.47) < .1 || (mz > 1.7 && mz < 1.9))) continue;                                         // líneas interiores (andador y banqueta), no barda
-  segR(a, b, N.terreno, N.terreno + 1.2, M.muro, .09); }
+  if ((a[0] + b[0]) / 2 > 16.4 && mz < -7.0) continue;                                                                // lindero oriente frente al garage: acceso de autos abierto
+  let p = a, q = b; if (hz && mz < -16) { p = [Math.min(a[0], 14.0), a[1]]; q = [Math.min(b[0], 14.0), b[1]]; }          // barda norte termina en el inicio del garage
+  segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .09); }
+// la barda da vuelta hacia el garage en ambos lados del acceso de autos
+for (const [p, q] of [[[16.78, -7.37], [14.0, -7.37]], [[14.0, -7.37], [14.0, -8.44]], [[14.0, -16.55], [14.0, -13.65]]]) segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .15);
+// barda baja al norte con puerta de servicio (x 6.95, del lindero norte al muro de la casa), puerta de 1.10
+segR([6.95, -15.31], [6.95, -13.65], N.terreno, N.terreno + 1.2, M.muro, .15); caja(6.85, -16.62, 7.05, -16.43, N.terreno, N.terreno + 1.5, M.muro); caja(6.85, -15.36, 7.05, -15.20, N.terreno, N.terreno + 1.5, M.muro);
+caja(6.92, -16.43, 6.98, -15.36, N.terreno + .05, N.terreno + 1.4, M.madera); for (let k = 1; k < 5; k++) caja(6.90, -16.43, 7.0, -15.36, N.terreno + .05 + k * .27, N.terreno + .08 + k * .27, M.marco);
 // acceso al lote (oriente): dos columnas altas con remate y portón doble de 1.80
 { const xg = 16.71, za = -6.39, zb = -4.59;
   for (const [z0, z1] of [[-6.85, za], [zb, -4.13]]){ caja(xg - .23, z0, xg + .23, z1, N.terreno, N.terreno + 3.0, M.muro); caja(xg - .3, z0 - .07, xg + .3, z1 + .07, N.terreno + 3.0, N.terreno + 3.18, M.filo);
@@ -129,7 +136,8 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
   for (const [a0, b0] of D[k].muros) for (const [a, b] of recorta(a0, b0, D[k].vidrios.concat(HUECOS[k] || []))){ const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     if (k !== 'pb' && m[0] > 9.45 && m[1] < -8.3) continue;
     if (k === 'az' && m[0] < -.1) continue;                                                                            // proyección del balcón poniente (abierto, X en el plano)
-    if (k === 'az' && enR(m, [1.4, -9.6, 5.7, -5.3])) continue;                                                     // contorno del área cubierta (es la pérgola, no muros)
+    if (k === 'az' && enR(m, [1.4, -9.6, 5.7, -5.3])) continue;
+    if (k === 'pa' && enR(m, [8.7, -6.35, 9.45, -4.65])) continue;                                                 // restos de líneas detrás del ventanal del acceso                                                     // contorno del área cubierta (es la pérgola, no muros)
     if (k !== 'pb' && m[0] > 9.7 && enR(m, [9.6, -8.6, 10.0, -6.25])) continue;                                    // cara oriente de la escalera: cristal
     if (k === 'pb' && m[0] > 13.4 && m[1] < -8.5) { seg(a, b, y0, y0 + 2.6, M.puerta, .1); seg(a, b, y0 + 2.6, N.gar_alero - .2, M.muro, .3); continue; }   // puerta del garage (oriente)
     if ((k !== 'pb' && m[0] > 9.95) || (k === 'pb' && m[0] > 9.62 && m[1] > -8.3)) continue;
@@ -149,7 +157,7 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k === 'az' || (k === 'pa' && !enR(m, CASA))){ seg(a, b, y0, y0 + 1.1, M.vidrio, .03); seg(a, b, y0 + 1.06, y0 + 1.1, M.marco, .05); continue; }   // barandal de cristal
     let sill = L >= 1.6 ? 0 : .9, head = 2.4;
     if (k === 'pa' && m[1] < -13.3) sill = .9;                                                                          // muro norte de la recámara: ventana normal
-    if (k === 'pa' && enR(m, [9.3, -6.4, 9.8, -4.6])) { sill = 1.2; head = 2.85; }                                    // ventanal alto sobre el acceso, a eje con la puerta
+    if (k === 'pa' && enR(m, [9.3, -6.4, 9.8, -4.6])) { sill = 0; head = N.az - .22 - N.pa; }                         // ventanal de piso a techo sobre el acceso                                    // ventanal alto sobre el acceso, a eje con la puerta
     if (sill) seg(a, b, y0, y0 + sill, M.muro, .14);
     seg(a, b, y0 + sill, y0 + head, M.vidrio, .03); seg(a, b, y0 + head, y1, M.muro, .14);
     const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
