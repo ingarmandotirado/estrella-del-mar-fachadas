@@ -106,8 +106,11 @@ caja(6.92, -16.43, 6.98, -15.36, N.terreno + .05, N.terreno + 1.4, M.madera); fo
   for (const [z0, z1] of [[-6.85, za], [zb, -4.13]]){ caja(xg - .23, z0, xg + .23, z1, N.terreno, N.terreno + 3.0, M.muro); caja(xg - .3, z0 - .07, xg + .3, z1 + .07, N.terreno + 3.0, N.terreno + 3.18, M.filo);
     caja(xg - .25, z0 - .02, xg + .25, z1 + .02, N.terreno + 1.2, N.terreno + 1.32, M.filo); }
   const zm = (za + zb) / 2;
-  for (const [u, w] of [[za + .03, zm - .02], [zm + .02, zb - .03]]){ caja(xg - .03, u, xg + .03, w, N.terreno + .05, N.terreno + 2.1, M.madera);
-    for (let k = 1; k < 7; k++) caja(xg - .045, u, xg + .045, w, N.terreno + .05 + k * .29, N.terreno + .08 + k * .29, M.marco); }
+  const met = std('#2b2e31', .45, { metalness: .5 }), ya = N.terreno + .05, yb = N.terreno + 2.10;      // portón de la misma herrería que la reja: barras verticales con marco
+  for (const [u, w] of [[za + .03, zm - .02], [zm + .02, zb - .03]]){
+    for (const y of [ya, yb - .04]) caja(xg - .025, u, xg + .025, w, y, y + .04, met);
+    for (const z of [u, w - .04]) caja(xg - .025, z, xg + .025, z + .04, ya, yb, met);
+    const k = Math.round((w - u - .04) / .12); for (let i = 1; i < k; i++){ const z = u + .02 + i * (w - u - .04) / k; caja(xg - .01, z - .01, xg + .01, z + .01, ya + .04, yb - .04, met); } }
   caja(xg - .12, za, xg + .12, zb, N.terreno + 2.1, N.terreno + 2.22, M.filo); }
 { const [ax, az, bx, bz] = D.alberca; caja(ax, az, bx, bz, N.terreno - .3, N.terreno + .02, M.agua, false); for (const [p, q] of [[[ax, az], [bx, az]], [[ax, bz], [bx, bz]], [[ax, az], [ax, bz]], [[bx, az], [bx, bz]]]) seg(p, q, N.terreno, N.terreno + .06, M.piso, .5); }
 // losas
