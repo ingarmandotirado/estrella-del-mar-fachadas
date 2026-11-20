@@ -62,10 +62,10 @@ const M = {
 };
 M.pasto.map.repeat.set(8, 8);
 { const c = document.createElement('canvas'); c.width = 128; c.height = 128; const x = c.getContext('2d');
-  for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++){ const off = r % 2 ? 16 : 0, v = 150 + Math.floor(Math.random() * 30);
-    const g = x.createLinearGradient(k * 32 + off, 0, k * 32 + off + 32, 0); g.addColorStop(0, `rgb(${v - 40},${Math.floor((v - 40) * .45)},${Math.floor((v - 40) * .3)})`);
-    g.addColorStop(.5, `rgb(${v + 30},${Math.floor((v + 30) * .5)},${Math.floor((v + 30) * .33)})`); g.addColorStop(1, `rgb(${v - 40},${Math.floor((v - 40) * .45)},${Math.floor((v - 40) * .3)})`);
-    x.fillStyle = g; x.fillRect(k * 32 + off - 32, r * 16, 32, 15); x.fillRect(k * 32 + off, r * 16, 32, 15); x.fillStyle = 'rgba(40,20,10,.5)'; x.fillRect(0, r * 16 + 15, 128, 1); }
+  for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++){ const off = r % 2 ? 16 : 0, v = 70 + Math.floor(Math.random() * 22);
+    const g = x.createLinearGradient(k * 32 + off, 0, k * 32 + off + 32, 0); g.addColorStop(0, `rgb(${v - 25},${v - 22},${v - 18})`);
+    g.addColorStop(.5, `rgb(${v + 22},${v + 25},${v + 29})`); g.addColorStop(1, `rgb(${v - 25},${v - 22},${v - 18})`);
+    x.fillStyle = g; x.fillRect(k * 32 + off - 32, r * 16, 32, 15); x.fillRect(k * 32 + off, r * 16, 32, 15); x.fillStyle = 'rgba(15,15,18,.6)'; x.fillRect(0, r * 16 + 15, 128, 1); }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(.9, .9);
   M.teja = new THREE.MeshStandardMaterial({ map: t, roughness: .8, side: THREE.DoubleSide }); }
 const G = new THREE.Group(); S.add(G);
@@ -87,10 +87,10 @@ const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0],
 for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] - b[1]) < .05;
   if (hz && (Math.abs(mz + 15.47) < .1 || (mz > 1.7 && mz < 1.9))) continue;                                         // líneas interiores (andador y banqueta), no barda
   if ((a[0] + b[0]) / 2 > 16.4 && mz < -7.0) continue;                                                                // lindero oriente frente al garage: acceso de autos abierto
-  let p = a, q = b; if (hz && mz < -16) { p = [Math.min(a[0], 14.0), a[1]]; q = [Math.min(b[0], 14.0), b[1]]; }          // barda norte termina en el inicio del garage
+  let p = a, q = b; if (hz && mz < -16) { p = [Math.min(a[0], 6.95), a[1]]; q = [Math.min(b[0], 6.95), b[1]]; }            // barda norte termina en la barda baja interior
   segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .09); }
 // la barda da vuelta hacia el garage en ambos lados del acceso de autos
-for (const [p, q] of [[[16.78, -7.37], [14.0, -7.37]], [[14.0, -7.37], [14.0, -8.44]], [[14.0, -16.55], [14.0, -13.65]]]) segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .15);
+for (const [p, q] of [[[16.78, -7.37], [14.0, -7.37]], [[14.0, -7.37], [14.0, -8.44]]]) segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .15);
 // barda baja al norte con puerta de servicio (x 6.95, del lindero norte al muro de la casa), puerta de 1.10
 segR([6.95, -15.31], [6.95, -13.65], N.terreno, N.terreno + 1.2, M.muro, .15); caja(6.85, -16.62, 7.05, -16.43, N.terreno, N.terreno + 1.5, M.muro); caja(6.85, -15.36, 7.05, -15.20, N.terreno, N.terreno + 1.5, M.muro);
 caja(6.92, -16.43, 6.98, -15.36, N.terreno + .05, N.terreno + 1.4, M.madera); for (let k = 1; k < 5; k++) caja(6.90, -16.43, 7.0, -15.36, N.terreno + .05 + k * .27, N.terreno + .08 + k * .27, M.marco);
@@ -125,7 +125,7 @@ for (const y of [N.pa, N.az]) for (const r of [CASA]) { const e = .06, o = .25; 
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
-const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[6.95, -9.65], [6.95, -8.65]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
+const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[6.95, -13.55], [6.95, -12.55]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
 const CB = [99, 99, -99, -99];   // extensión real de los muros del cubo de escalera (para su losa)
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
@@ -137,7 +137,8 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k !== 'pb' && m[0] > 9.45 && m[1] < -8.3) continue;
     if (k === 'az' && m[0] < -.1) continue;                                                                            // proyección del balcón poniente (abierto, X en el plano)
     if (k === 'az' && enR(m, [1.4, -9.6, 5.7, -5.3])) continue;
-    if (k === 'pa' && enR(m, [8.7, -6.35, 9.45, -4.65])) continue;                                                 // restos de líneas detrás del ventanal del acceso                                                     // contorno del área cubierta (es la pérgola, no muros)
+    if (k === 'pa' && enR(m, [8.7, -6.35, 9.45, -4.65])) continue;
+    if (k !== 'pb' && enR(m, [9.62, -6.1, 10.1, -4.9])) continue;                                                  // huella del andador repetida en PA/azotea (los dos retazos sobre la puerta)                                                 // restos de líneas detrás del ventanal del acceso                                                     // contorno del área cubierta (es la pérgola, no muros)
     if (k !== 'pb' && m[0] > 9.7 && enR(m, [9.6, -8.6, 10.0, -6.25])) continue;                                    // cara oriente de la escalera: cristal
     if (k === 'pb' && m[0] > 13.4 && m[1] < -8.5) { seg(a, b, y0, y0 + 2.6, M.puerta, .1); seg(a, b, y0 + 2.6, N.gar_alero - .2, M.muro, .3); continue; }   // puerta del garage (oriente)
     if ((k !== 'pb' && m[0] > 9.95) || (k === 'pb' && m[0] > 9.62 && m[1] > -8.3)) continue;
@@ -181,9 +182,10 @@ caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.65, .9
 { const sombra = std('#6b6f73', .95); caja(2.51, -12.34, 4.76, -12.28, N.pb, N.pa - .22, sombra); caja(5.86, -11.52, 6.97, -11.46, N.pb, N.pa - .22, sombra);
   caja(2.51, -13.5, 4.76, -12.34, N.pa - .26, N.pa - .22, sombra); caja(5.86, -13.5, 6.97, -11.52, N.pa - .26, N.pa - .22, sombra); }
 // balcón oriente de PA: puerta del lado opuesto a la ventana (muro x 6.95, z −9.65 a −8.65), moldura negra corrida en su pretil
-caja(6.92, -9.65, 6.98, -8.65, N.pa, N.pa + 2.4, M.vidrio); caja(6.88, -9.70, 7.02, -8.60, N.pa + 2.4, N.pa + 2.54, M.filo);
-for (const z of [-9.65, -8.65]) caja(6.92, z - .03, 6.98, z + .03, N.pa, N.pa + 2.4, M.marco);
-caja(6.95, -9.65, 7.1, -8.65, N.pa + 2.54, N.az - .22, M.muro);
+caja(6.88, -9.65, 7.02, -8.65, N.pa, N.az - .22, M.muro);                                                             // se cierra el vano junto a la escalera
+caja(6.92, -13.55, 6.98, -12.55, N.pa, N.pa + 2.4, M.vidrio); caja(6.88, -13.60, 7.02, -12.50, N.pa + 2.4, N.pa + 2.54, M.filo);   // puerta al extremo norte (lado derecho)
+for (const z of [-13.55, -12.55]) caja(6.92, z - .03, 6.98, z + .03, N.pa, N.pa + 2.4, M.marco);
+caja(6.88, -13.55, 7.02, -12.55, N.pa + 2.54, N.az - .22, M.muro);
 caja(9.45, -13.9, 9.91, -8.55, N.balc_e - .14, N.balc_e, M.filo); caja(6.95, -13.9, 9.91, -13.6, N.balc_e - .14, N.balc_e, M.filo);
 caja(6.85, -13.9, 7.05, -8.55, N.az - .22, N.az, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
 // cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
