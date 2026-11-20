@@ -95,7 +95,7 @@ for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] -
   if (hz && (Math.abs(mz + 15.47) < .1 || (mz > 1.7 && mz < 1.9))) continue;                                         // líneas interiores (andador y banqueta), no barda
   if ((a[0] + b[0]) / 2 > 16.4 && mz < -7.0) continue;                                                                // lindero oriente frente al garage: acceso de autos abierto
   let p = a, q = b; if (hz && mz < -16) { p = [Math.min(a[0], 6.95), a[1]]; q = [Math.min(b[0], 6.95), b[1]]; }            // barda norte termina en la barda baja interior
-  segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .09); RJ.push([p, q]); }
+  segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .09); if (!(hz && mz < -16)) RJ.push([p, q]); }   // la barda norte no lleva reja
 // la barda da vuelta hacia el garage en ambos lados del acceso de autos
 for (const [p, q] of [[[16.78, -7.37], [14.0, -7.37]], [[14.0, -7.37], [14.0, -8.44]]]){ segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .15); RJ.push([p, q]); }
 // barda baja al norte con puerta de servicio (x 6.95, del lindero norte al muro de la casa), puerta de 1.10
@@ -294,7 +294,7 @@ for (const [x, z] of [[.6, -12.1], [.6, -10.6], [.6, -3.0], [8.6, -2.2], [5.8, -
 // árboles sencillos alrededor
 const hoja = std('#4f7d3a', .9, { flatShading: true }), tronco = std('#6b513b', .9);
 for (const [x, z] of [[-8, -15], [-9, -1], [15, -3], [-10, 3.2], [15.5, 2.8], [3, -16], [11, -16]]){
-  caja(x - .1, z - .1, x + .1, z + .1, N.terreno, N.terreno + 2.2, tronco); add(new THREE.IcosahedronGeometry(1.4, 0), hoja, x, N.terreno + 3.2, z); }
+  caja(x - .07, z - .07, x + .07, z + .07, N.terreno, N.terreno + 1.1, tronco); add(new THREE.IcosahedronGeometry(.55, 0), hoja, x, N.terreno + 1.55, z); }   // árboles bajos: copa ligera, altura máxima 2.10
 // jardinería: camas de piedrita de colores con borde y vegetación baja (rompen el pasto sin quitarle protagonismo)
 { let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
   const grava = std('#ddd2bb', 1), borde = std('#b9b2a4', .9), y0 = N.terreno;
