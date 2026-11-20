@@ -225,6 +225,46 @@ seg([9.02, -6.29], [9.02, -5.14], N.pb, N.pb + 2.4, M.madera, .07); seg([9.02, -
 seg([9.02, -6.29], [9.02, -4.69], N.pb + 2.4, N.pa - .22, M.muro, .2);
 for (const z of [-6.29, -5.14, -4.69]) caja(9.0, z - .03, 9.06, z + .03, N.pb, N.pb + 2.4, M.marco);
 caja(9.07, -6.33, 9.20, -4.65, N.pb + 2.4, N.pb + 2.54, M.filo);
+
+// ======================= mobiliario de amenidades (posiciones del plano) =======================
+const ANIM = [];
+const MOB = { marco: std('#2b2e31', .5, { metalness: .4 }), cojin: std('#ece6da', .95), cojin2: std('#c9b79a', .95), madera: std('#9b6d48', .7), sombrilla: std('#ece6da', .9, { side: THREE.DoubleSide }), mesa: std('#d9d4ca', .5) };
+const grupo = (x, y, z, rot = 0) => { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = rot; G.add(g); return g; };
+const pieza = (g, w, h, d, x, y, z, mat, rx = 0) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.rotation.x = rx; m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+function silla(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .46, .06, .46, 0, .45, 0, MOB.cojin); pieza(g, .46, .45, .05, 0, .7, -.21, MOB.marco);
+  for (const [a, b] of [[-.2, -.2], [.2, -.2], [-.2, .2], [.2, .2]]) pieza(g, .035, .45, .035, a, .225, b, MOB.marco); }
+function mesa(x, y, z, r = .45){ const g = grupo(x, y, z); const t = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .04, 24), MOB.mesa); t.position.y = .74; t.castShadow = true; g.add(t);
+  const p = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, .72, 8), MOB.marco); p.position.y = .37; g.add(p); return g; }
+function comedor(x, y, z, n = 4){ mesa(x, y, z); for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2 + Math.PI / 4; silla(x + Math.sin(a) * .72, y, z + Math.cos(a) * .72, a + Math.PI); } }
+function camastro(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .62, .12, 1.35, 0, .3, .15, MOB.cojin); pieza(g, .62, .1, .7, 0, .52, -.72, MOB.cojin, -.9);
+  pieza(g, .66, .08, 1.95, 0, .2, -.05, MOB.marco); for (const [a, b] of [[-.28, .85], [.28, .85], [-.28, -.85], [.28, -.85]]) pieza(g, .04, .2, .04, a, .1, b, MOB.marco); }
+function sillon(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .8, .38, .78, 0, .22, 0, MOB.cojin2); pieza(g, .8, .42, .16, 0, .6, -.31, MOB.cojin2); for (const s of [-1, 1]) pieza(g, .14, .3, .78, s * .33, .5, 0, MOB.cojin2); }
+function sofa(x, y, z, rot, L = 1.9){ const g = grupo(x, y, z, rot); pieza(g, L, .38, .82, 0, .22, 0, MOB.cojin2); pieza(g, L, .45, .16, 0, .62, -.33, MOB.cojin2); for (const s of [-1, 1]) pieza(g, .16, .3, .82, s * (L / 2 - .08), .5, 0, MOB.cojin2);
+  for (let i = 0; i < 3; i++) pieza(g, .38, .3, .12, -L / 3 + i * L / 3, .58, -.22, MOB.cojin); }
+function sombrilla(x, y, z){ const g = grupo(x, y, z); const p = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, 2.4, 8), MOB.marco); p.position.y = 1.2; g.add(p);
+  const c = new THREE.Mesh(new THREE.ConeGeometry(1.25, .45, 8, 1, true), MOB.sombrilla); c.position.y = 2.3; c.castShadow = true; g.add(c); }
+function maceta(x, y, z, s = 1){ const g = grupo(x, y, z); pieza(g, .45 * s, .5 * s, .45 * s, 0, .25 * s, 0, MOB.marco); const h = new THREE.Mesh(new THREE.IcosahedronGeometry(.42 * s, 0), std('#4f7d3a', .9, { flatShading: true })); h.position.y = .8 * s; h.castShadow = true; g.add(h); }
+// terraza cubierta de PB (bajo el balcón poniente): comedor y dos camastros con mesita
+comedor(-1.45, N.pb - .1, -8.0); camastro(-1.45, N.pb - .1, -5.6, Math.PI / 2); camastro(-1.45, N.pb - .1, -3.1, Math.PI / 2); mesa(-1.45, N.pb - .1, -4.35, .25);
+// alberca: camastros con sombrilla al oriente del agua
+for (const z of [-8.2, -6.6, -5.0]) camastro(-4.25, N.terreno, z, -Math.PI / 2); sombrilla(-4.3, N.terreno, -3.9); sombrilla(-4.3, N.terreno, -9.4);
+// balcón poniente de PA: comedor y camastros
+comedor(-1.45, N.pa, -7.95); camastro(-1.45, N.pa, -5.6, Math.PI / 2); camastro(-1.45, N.pa, -3.2, Math.PI / 2);
+// balcón oriente de PA: dos sillones con mesita
+sillon(8.25, N.pa, -12.2, Math.PI); sillon(8.25, N.pa, -9.8, 0); mesa(8.25, N.pa, -11.0, .3);
+// azotea bajo la pérgola: comedor redondo, dos sillones y sofá; macetas en el roof garden
+comedor(3.5, N.az, -8.45); sillon(2.2, N.az, -6.95, Math.PI / 2); sillon(4.85, N.az, -6.95, -Math.PI / 2); sofa(3.55, N.az, -5.95, Math.PI, 1.9);
+for (const [x, z] of [[.6, -12.1], [.6, -10.6], [.6, -3.0], [8.6, -2.2], [5.8, -1.6]]) maceta(x, N.az, z);
+// grill encendido en la barra poniente: brasas y humo animado
+{ const xg = -.31, zg = -13.25, yg = N.pb + 1.07;
+  const brasa = new THREE.Mesh(new THREE.BoxGeometry(.4, .02, .6), new THREE.MeshStandardMaterial({ color: '#2a1408', emissive: '#ff5a1a', emissiveIntensity: 1.6 })); brasa.position.set(xg, yg - .03, zg); G.add(brasa);
+  const luz = new THREE.PointLight('#ff7a30', 2.5, 3, 2); luz.position.set(xg, yg + .25, zg); G.add(luz);
+  const humoMat = new THREE.MeshBasicMaterial({ color: '#d8d8d8', transparent: true, opacity: .35, depthWrite: false });
+  const bolas = []; for (let i = 0; i < (MOVIL ? 10 : 18); i++){ const b = new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 8), humoMat.clone()); b.userData.f = i / (MOVIL ? 10 : 18); G.add(b); bolas.push(b); }
+  ANIM.push(t => { for (const b of bolas){ const f = (b.userData.f + t * .18) % 1, sz = .5 + f * 3.2;
+      b.position.set(xg + Math.sin(f * 7 + b.userData.f * 20) * .12 * (1 + f * 3) - f * .5, yg + .1 + f * 2.6, zg + Math.cos(f * 5 + b.userData.f * 9) * .1 * (1 + f * 2));
+      b.scale.setScalar(sz); b.material.opacity = .38 * (1 - f) * Math.min(1, f * 6); }
+    luz.intensity = 2.2 + Math.sin(t * 13) * .4 + Math.sin(t * 7.3) * .3; brasa.material.emissiveIntensity = 1.4 + Math.sin(t * 9) * .3; }); }
 // pérgola de la azotea (área cubierta 4.00 × 4.00 del plano: x 1.56–5.54, z −9.43 a −5.43; postes a 3.60), 2 vigas laterales y duelas
 { const [x0, z0, x1, z1] = [1.56, -9.43, 5.54, -5.43], px = [1.76, 5.34], pz = [-9.23, -5.63], yv = N.az + 2.45;
   for (const x of px) for (const z of pz) caja(x - .1, z - .1, x + .1, z + .1, N.az, yv, M.filo);
@@ -253,7 +293,7 @@ function rs(){ const w = innerWidth, h = innerHeight; R.setSize(w, h, false); ca
 ir('Aérea', true); document.getElementById('load').remove();
 window.__v = { cam, ctl, R, S, render: () => { ctl.update(); R.render(S, cam); } };
 const ck = new THREE.Clock();
-R.setAnimationLoop(() => { const dt = ck.getDelta(); if (tw){ tw.k = Math.min(1, tw.k + dt / 1.1); const e = tw.k * tw.k * (3 - 2 * tw.k); cam.position.lerpVectors(tw.p0, tw.p1, e); ctl.target.lerpVectors(tw.t0, tw.t1, e); if (tw.k >= 1) tw = null; }
+R.setAnimationLoop(() => { const dt = ck.getDelta(); const tt = ck.elapsedTime; ANIM.forEach(f => f(tt)); if (tw){ tw.k = Math.min(1, tw.k + dt / 1.1); const e = tw.k * tw.k * (3 - 2 * tw.k); cam.position.lerpVectors(tw.p0, tw.p1, e); ctl.target.lerpVectors(tw.t0, tw.t1, e); if (tw.k >= 1) tw = null; }
   ctl.update(); R.render(S, cam); });
 </script>
 </body>
