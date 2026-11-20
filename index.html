@@ -348,7 +348,12 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
   if (inst){ cam.position.set(...p); ctl.target.set(...t); return; } tw = { k: 0, p0: cam.position.clone(), t0: ctl.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t) }; }
 { const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
-  rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb); }
+  rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
+  const fb = document.createElement('button'); fb.className = 'rj'; fb.textContent = '⛶ Pantalla completa'; fb.title = 'Pantalla completa';
+  const de = document.documentElement, esFS = () => document.fullscreenElement || document.webkitFullscreenElement;
+  fb.onclick = () => { if (esFS()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else (de.requestFullscreen || de.webkitRequestFullscreen).call(de); };
+  for (const ev of ['fullscreenchange', 'webkitfullscreenchange']) document.addEventListener(ev, () => { fb.textContent = esFS() ? '✕ Salir' : '⛶ Pantalla completa'; fb.classList.toggle('on', !!esFS()); });
+  if (de.requestFullscreen || de.webkitRequestFullscreen) tj.appendChild(fb); }
 const hr = document.getElementById('h'); hr.oninput = () => ponerSol(+hr.value); ponerSol(+hr.value);
 function rs(){ const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } addEventListener('resize', rs); rs();
 ir('Aérea', true); document.getElementById('load').remove();
