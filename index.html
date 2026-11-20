@@ -226,11 +226,11 @@ caja(6.85, -8.66, 9.97, -8.55, N.az - .22, N.az, M.filo);                       
   caja(x1 - .14, z1 - .52, x1 - .1, z1 - .48, yb + .05, yb + .35, std('#b9bec2', .25, { metalness: .8 })); }
 // escalera: cara oriente en cristal completo del 2o y 3er nivel, al filo exterior (x 9.91)
 { const xg = 9.91, za = -8.55, zb = -6.31;
-  const yt = N.cubo - .2 - .70;                                                                                         // el ventanal termina 0.70 abajo del remate; encima, muro
-  seg([xg, za], [xg, zb], N.pa - .22, yt, M.vidrio, .03); seg([xg, za], [xg, zb], yt, N.cubo - .2, M.muro, .15);
+  const yt = N.cubo - .2 - .70, ym = N.pb + (N.pa - N.pb) / 2;                                // ventanal desde media altura de PB (primer descanso y vuelta) hasta 0.70 bajo el remate                                                                                         // el ventanal termina 0.70 abajo del remate; encima, muro
+  seg([xg, za], [xg, zb], ym, yt, M.vidrio, .03); seg([xg, za], [xg, zb], yt, N.cubo - .2, M.muro, .15);
   for (const z of [za, zb]) seg([9.45, z], [xg + .02, z], N.pb, N.cubo - .2, M.muro, .15);
-  seg([xg, za], [xg, zb], N.pb, N.pa - .22, M.muro, .15);                                                             // muro sólido bajo los cristales (planta baja)                             // muros laterales de la escalera al ras del ventanal
-  for (const z of [za, zb]) caja(xg - .05, z - .05, xg + .05, z + .05, N.pa - .22, yt, M.marco);
+  seg([xg, za], [xg, zb], N.pb, ym - .1, M.muro, .15); seg([xg, za], [xg, zb], ym - .1, ym, M.filo, .2);                                                             // muro sólido bajo los cristales (planta baja)                             // muros laterales de la escalera al ras del ventanal
+  for (const z of [za, zb]) caja(xg - .05, z - .05, xg + .05, z + .05, ym, yt, M.marco);
   for (const y of [N.pa, N.az, yt + .12]) seg([xg, za], [xg, zb], y - .12, y, M.filo, .14); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [7.05, -13.65]], [[9.6, 0], [9.6, -6.31]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
