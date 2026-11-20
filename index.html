@@ -36,6 +36,7 @@ const D = {"niv": {"terreno": 0.45, "pb": 0.65, "pa": 3.95, "az": 7.15, "pretil"
 // ventanas de esquina sureste (niveles 1 y 2): la del muro sur de PB (1.05 m) da la medida y continúa igual en el muro oriente
 for (const k of ['pb', 'pa']){ D[k].vidrios = D[k].vidrios.filter(([a, b]) => !(Math.max(a[0], b[0]) > (k === 'pa' ? 7.4 : 8.2) && Math.max(a[1], b[1]) > -2.3));   // en PA también sale el vano tipo puerta junto a la esquina
   D[k].vidrios.push([[8.55, -.07], [9.60, -.07]], [[9.53, -1.05], [9.53, 0]]); }
+D.pa.vidrios.push([[9.53, -6.29], [9.53, -4.69]]);                                                                     // ventanal alto del nivel 2 sobre la puerta principal
 const MOVIL = /iPhone|iPad|Android/i.test(navigator.userAgent);
 const cv = document.getElementById('c');
 const R = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
@@ -60,6 +61,13 @@ const M = {
   piso: std('#d8d2c4', .9), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#9b6d48', .75), calle: std('#7b7c7a', .95),
 };
 M.pasto.map.repeat.set(8, 8);
+{ const c = document.createElement('canvas'); c.width = 128; c.height = 128; const x = c.getContext('2d');
+  for (let r = 0; r < 8; r++) for (let k = 0; k < 4; k++){ const off = r % 2 ? 16 : 0, v = 150 + Math.floor(Math.random() * 30);
+    const g = x.createLinearGradient(k * 32 + off, 0, k * 32 + off + 32, 0); g.addColorStop(0, `rgb(${v - 40},${Math.floor((v - 40) * .45)},${Math.floor((v - 40) * .3)})`);
+    g.addColorStop(.5, `rgb(${v + 30},${Math.floor((v + 30) * .5)},${Math.floor((v + 30) * .33)})`); g.addColorStop(1, `rgb(${v - 40},${Math.floor((v - 40) * .45)},${Math.floor((v - 40) * .3)})`);
+    x.fillStyle = g; x.fillRect(k * 32 + off - 32, r * 16, 32, 15); x.fillRect(k * 32 + off, r * 16, 32, 15); x.fillStyle = 'rgba(40,20,10,.5)'; x.fillRect(0, r * 16 + 15, 128, 1); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(.9, .9);
+  M.teja = new THREE.MeshStandardMaterial({ map: t, roughness: .8, side: THREE.DoubleSide }); }
 const G = new THREE.Group(); S.add(G);
 const add = (geo, mat, x, y, z, cast = true) => { const me = new THREE.Mesh(geo, mat); me.position.set(x, y, z); me.castShadow = cast; me.receiveShadow = true; G.add(me); return me; };
 const caja = (x0, z0, x1, z1, y0, y1, mat, cast = true) => add(new THREE.BoxGeometry(Math.max(.02, Math.abs(x1 - x0)), Math.max(.02, y1 - y0), Math.max(.02, Math.abs(z1 - z0))), mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, cast);
@@ -104,12 +112,14 @@ for (const y of [N.pa, N.az]) for (const r of [CASA]) { const e = .06, o = .25; 
   const cara = (a, b, c) => tri.push(...P(a), ...P(b), ...P(c));
   cara(0, 2, 4); cara(0, 4, 5); cara(1, 5, 4); cara(1, 4, 3); cara(2, 3, 4);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(tri, 3)); g.computeVertexNormals();
-  const me = new THREE.Mesh(g, std('#6f7478', .6, { metalness: .2, side: THREE.DoubleSide })); me.castShadow = me.receiveShadow = true; G.add(me);
+  const uv = []; for (let i = 0; i < tri.length; i += 3) uv.push(tri[i], tri[i + 2]); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  const me = new THREE.Mesh(g, M.teja); me.castShadow = me.receiveShadow = true; G.add(me);
   caja(6.95, -13.65, 9.51, -8.44, N.gar_alero - .2, N.gar_alero, M.losa); }
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
 const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[6.95, -9.65], [6.95, -8.65]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
+const CB = [99, 99, -99, -99];   // extensión real de los muros del cubo de escalera (para su losa)
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
   for (const [p, q] of vids){ const vh = Math.abs(p[0] - q[0]) >= Math.abs(p[1] - q[1]); if (vh !== hz || Math.abs(p[j] - a[j]) > .25) continue;
@@ -128,7 +138,7 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k === 'pb' && m[0] > 8.9 && m[0] < 9.6 && m[1] < -4.6 && m[1] > -6.35 && Math.abs(a[0] - b[0]) < .05) continue;   // líneas del porche y de la puerta (se modelan aparte)                          // huellas del andador de acceso (no son muros)                                                        // contorno del techo del garage (no es muro)                                                                           // contorno del techo del garage (no es muro)
     let top = y1;
     if (k === 'pb' && m[0] > 9.7) top = N.gar_alero - .2;                                                              // garage
-    if (k === 'az' && enR(m, CUBO)) top = N.cubo - .2;                                                                  // cubo de escalera (11.8)
+    if (k === 'az' && enR(m, CUBO)) { top = N.cubo - .2; for (const p of [a, b]){ CB[0] = Math.min(CB[0], p[0]); CB[1] = Math.min(CB[1], p[1]); CB[2] = Math.max(CB[2], p[0]); CB[3] = Math.max(CB[3], p[1]); } }                                                                  // cubo de escalera (11.8)
     else if (k === 'az' && m[0] > 7.25 && m[1] < -8.5) continue;                                                       // losa del balcón oriente: solo filo, sin pretil
     if (k === 'pa' && enR(m, BALC_E) && (m[0] > 9.3 || m[1] < -13.4)) top = N.balc_e;                                  // pretiles del balcón oriente (5.15)                                                                  // cubo de escalera
     if (k === 'pa' && !enR(m, CASA)) top = y0 + 1.1;                                                                    // pretiles del balcón
@@ -137,7 +147,9 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k === 'az' && m[0] < -.1) continue;
     if (k !== 'pb' && m[0] > 9.7 && enR(m, [9.6, -8.6, 10.0, -6.25])) continue;
     if (k === 'az' || (k === 'pa' && !enR(m, CASA))){ seg(a, b, y0, y0 + 1.1, M.vidrio, .03); seg(a, b, y0 + 1.06, y0 + 1.1, M.marco, .05); continue; }   // barandal de cristal
-    const sill = L >= 1.6 ? 0 : .9, head = 2.4;
+    let sill = L >= 1.6 ? 0 : .9, head = 2.4;
+    if (k === 'pa' && m[1] < -13.3) sill = .9;                                                                          // muro norte de la recámara: ventana normal
+    if (k === 'pa' && enR(m, [9.3, -6.4, 9.8, -4.6])) { sill = 1.2; head = 2.85; }                                    // ventanal alto sobre el acceso, a eje con la puerta
     if (sill) seg(a, b, y0, y0 + sill, M.muro, .14);
     seg(a, b, y0 + sill, y0 + head, M.vidrio, .03); seg(a, b, y0 + head, y1, M.muro, .14);
     const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
@@ -168,6 +180,11 @@ caja(9.45, -13.9, 9.91, -8.55, N.balc_e - .14, N.balc_e, M.filo); caja(6.95, -13
 caja(6.85, -13.9, 7.05, -8.55, N.az - .22, N.az, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
 // cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
 seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
+// losa del cubo de escalera en la azotea (sobre la extensión real de sus muros)
+if (CB[0] < 90) caja(CB[0] - .1, CB[1] - .1, Math.max(CB[2], 9.91) + .1, CB[3] + .1, N.cubo - .22, N.cubo, M.losa);
+// marco de la puerta del garage (oriente): pilastras a los lados y trabe encima, salientes 0.15
+{ const x = 13.85; for (const [z0, z1] of [[-13.65, -13.25], [-8.84, -8.44]]) caja(x - .05, z0, x + .18, z1, N.pb, N.gar_alero, M.muro);
+  caja(x - .05, -13.65, x + .18, -8.44, N.pb + 2.6, N.gar_alero, M.muro); caja(x + .18, -13.68, x + .22, -8.41, N.gar_alero - .14, N.gar_alero, M.filo); }
 // barra exterior al poniente de la cocina: asador y tarja (x −0.60 a 0, z −13.65 a −11.25)
 { const [x0, x1, z0, z1, yb] = [-.62, 0, -13.65, -11.25, N.pb + .9];
   caja(x0, z0, x1, z1, N.terreno, yb, M.muro); caja(x0 - .04, z0 - .02, x1, z1 + .02, yb, yb + .05, std('#3a3d40', .35, { metalness: .2 }));
