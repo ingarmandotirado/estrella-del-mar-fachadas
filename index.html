@@ -153,6 +153,7 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k === 'pb' && m[0] > 8.9 && m[0] < 9.6 && m[1] < -4.6 && m[1] > -6.35 && Math.abs(a[0] - b[0]) < .05) continue;   // líneas del porche y de la puerta (se modelan aparte)                          // huellas del andador de acceso (no son muros)                                                        // contorno del techo del garage (no es muro)                                                                           // contorno del techo del garage (no es muro)
     let top = y1;
     if (k === 'pb' && m[0] > 9.7) top = N.gar_alero - .2;                                                              // garage
+    if (k === 'az' && enR(m, [6.8, -8.7, 10.1, -6.15])) continue;                                                   // cubo de escalera: se modela liso aparte
     if (k === 'az' && enR(m, CUBO)) { top = N.cubo - .2; for (const p of [a, b]){ CB[0] = Math.min(CB[0], p[0]); CB[1] = Math.min(CB[1], p[1]); CB[2] = Math.max(CB[2], p[0]); CB[3] = Math.max(CB[3], p[1]); } }                                                                  // cubo de escalera (11.8)
     else if (k === 'az' && m[0] > 7.25 && m[1] < -8.5) continue;                                                       // losa del balcón oriente: solo filo, sin pretil
     if (k === 'pa' && enR(m, BALC_E) && (m[0] > 9.3 || m[1] < -13.4)) top = N.balc_e;                                  // pretiles del balcón oriente (5.15)                                                                  // cubo de escalera
@@ -196,6 +197,12 @@ caja(9.45, -13.9, 9.91, -8.55, N.balc_e - .14, N.balc_e, M.filo); caja(6.95, -13
 caja(6.85, -13.9, 7.05, -8.55, N.az - .22, N.az, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
 // cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
 seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
+// cubo de escalera en la azotea: muros lisos y puerta de salida (poniente)
+{ const [x0, z0, x1, z1] = [6.95, -8.55, 9.91, -6.31], y0 = N.az, y1 = N.cubo - .2, e = .15;
+  caja(x0, z0, x1, z0 + e, y0, y1, M.muro); caja(x0, z1 - e, x1, z1, y0, y1, M.muro);
+  caja(x0, z0, x0 + e, -7.25, y0, y1, M.muro); caja(x0, -6.40, x0 + e, z1, y0, y1, M.muro); caja(x0, -7.25, x0 + e, -6.40, y0 + 2.1, y1, M.muro);
+  caja(x0 - .02, -7.23, x0 + .04, -6.42, y0, y0 + 2.08, M.puerta); caja(x0 - .06, -7.30, x0 + .02, -6.35, y0 + 2.08, y0 + 2.2, M.filo);
+  CB[0] = Math.min(CB[0], x0); CB[1] = Math.min(CB[1], z0); CB[2] = Math.max(CB[2], x1); CB[3] = Math.max(CB[3], z1); }
 // losa del cubo de escalera en la azotea (sobre la extensión real de sus muros)
 if (CB[0] < 90) caja(CB[0] - .1, CB[1] - .1, Math.max(CB[2], 9.91) + .1, CB[3] + .1, N.cubo - .22, N.cubo, M.losa);
 // marco de la puerta del garage (oriente): pilastras a los lados y trabe encima, salientes 0.15
@@ -236,7 +243,7 @@ function silla(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .46, .06, 
 function mesa(x, y, z, r = .45){ const g = grupo(x, y, z); const t = new THREE.Mesh(new THREE.CylinderGeometry(r, r, .04, 24), MOB.mesa); t.position.y = .74; t.castShadow = true; g.add(t);
   const p = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, .72, 8), MOB.marco); p.position.y = .37; g.add(p); return g; }
 function comedor(x, y, z, n = 4){ mesa(x, y, z); for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2 + Math.PI / 4; silla(x + Math.sin(a) * .72, y, z + Math.cos(a) * .72, a + Math.PI); } }
-function camastro(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .62, .12, 1.35, 0, .3, .15, MOB.cojin); pieza(g, .62, .1, .7, 0, .52, -.72, MOB.cojin, -.9);
+function camastro(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .62, .12, 1.35, 0, .3, .15, MOB.cojin); pieza(g, .62, .1, .7, 0, .55, -.78, MOB.cojin, .75);
   pieza(g, .66, .08, 1.95, 0, .2, -.05, MOB.marco); for (const [a, b] of [[-.28, .85], [.28, .85], [-.28, -.85], [.28, -.85]]) pieza(g, .04, .2, .04, a, .1, b, MOB.marco); }
 function sillon(x, y, z, rot){ const g = grupo(x, y, z, rot); pieza(g, .8, .38, .78, 0, .22, 0, MOB.cojin2); pieza(g, .8, .42, .16, 0, .6, -.31, MOB.cojin2); for (const s of [-1, 1]) pieza(g, .14, .3, .78, s * .33, .5, 0, MOB.cojin2); }
 function sofa(x, y, z, rot, L = 1.9){ const g = grupo(x, y, z, rot); pieza(g, L, .38, .82, 0, .22, 0, MOB.cojin2); pieza(g, L, .45, .16, 0, .62, -.33, MOB.cojin2); for (const s of [-1, 1]) pieza(g, .16, .3, .82, s * (L / 2 - .08), .5, 0, MOB.cojin2);
@@ -245,11 +252,12 @@ function sombrilla(x, y, z){ const g = grupo(x, y, z); const p = new THREE.Mesh(
   const c = new THREE.Mesh(new THREE.ConeGeometry(1.25, .45, 8, 1, true), MOB.sombrilla); c.position.y = 2.3; c.castShadow = true; g.add(c); }
 function maceta(x, y, z, s = 1){ const g = grupo(x, y, z); pieza(g, .45 * s, .5 * s, .45 * s, 0, .25 * s, 0, MOB.marco); const h = new THREE.Mesh(new THREE.IcosahedronGeometry(.42 * s, 0), std('#4f7d3a', .9, { flatShading: true })); h.position.y = .8 * s; h.castShadow = true; g.add(h); }
 // terraza cubierta de PB (bajo el balcón poniente): comedor y dos camastros con mesita
-comedor(-1.45, N.pb - .1, -8.0); camastro(-1.45, N.pb - .1, -5.6, Math.PI / 2); camastro(-1.45, N.pb - .1, -3.1, Math.PI / 2); mesa(-1.45, N.pb - .1, -4.35, .25);
+comedor(-1.45, N.pb - .1, -6.05, 6);                                                                                  // terraza baja: mesa con sillas
 // alberca: camastros con sombrilla al oriente del agua
-for (const z of [-8.2, -6.6, -5.0]) camastro(-4.25, N.terreno, z, -Math.PI / 2); sombrilla(-4.3, N.terreno, -3.9); sombrilla(-4.3, N.terreno, -9.4);
+for (const x of [-9.1, -7.5, -5.9]) camastro(x, N.terreno, -11.75, 0); sombrilla(-8.3, N.terreno, -12.6); sombrilla(-6.7, N.terreno, -12.6);   // camastros al norte de la alberca
 // balcón poniente de PA: comedor y camastros
-comedor(-1.45, N.pa, -7.95); camastro(-1.45, N.pa, -5.6, Math.PI / 2); camastro(-1.45, N.pa, -3.2, Math.PI / 2);
+{ const g = grupo(-1.45, N.pa, -6.05); pieza(g, .6, .06, 1.1, 0, .38, 0, MOB.madera); for (const [a, b] of [[-.26, -.5], [.26, -.5], [-.26, .5], [.26, .5]]) pieza(g, .05, .35, .05, a, .18, b, MOB.marco); }
+sillon(-1.45, N.pa, -7.35, 0); sillon(-1.45, N.pa, -4.75, Math.PI);                                                    // balcón poniente: mesa baja y dos sillones de exterior
 // balcón oriente de PA: dos sillones con mesita
 sillon(8.25, N.pa, -12.2, Math.PI); sillon(8.25, N.pa, -9.8, 0); mesa(8.25, N.pa, -11.0, .3);
 // azotea bajo la pérgola: comedor redondo, dos sillones y sofá; macetas en el roof garden
