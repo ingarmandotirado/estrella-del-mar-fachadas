@@ -142,6 +142,7 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
 // escalera: cara oriente en cristal completo del 2o y 3er nivel, al filo exterior (x 9.91)
 { const xg = 9.91, za = -8.55, zb = -6.31;
   seg([xg, za], [xg, zb], N.pa - .22, N.cubo - .2, M.vidrio, .03);
+  for (const z of [za, zb]) seg([9.45, z], [xg + .02, z], N.pb, N.cubo - .2, M.muro, .15);                             // muros laterales de la escalera al ras del ventanal
   for (const z of [za, (za + zb) / 2, zb]) caja(xg - .05, z - .05, xg + .05, z + .05, N.pa - .22, N.cubo - .2, M.marco);
   for (const y of [N.pa, N.az, N.cubo - .2]) seg([xg, za], [xg, zb], y - .12, y, M.filo, .14); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
