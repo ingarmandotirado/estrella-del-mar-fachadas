@@ -203,7 +203,7 @@ caja(6.95, -12.65, 7.10, -11.79, N.pa + 2.4, N.az - .22, M.muro);
 for (const [z0, z1] of [[-13.65, -12.65], [-11.79, -9.82], [-8.97, -8.44]]) caja(6.95, z0, 7.10, z1, N.pa, N.az - .22, M.muro);   // muro macizo de la terraza entre puerta y ventana
 caja(9.6, -13.9, 9.85, -8.55, N.pa, N.balc_e, M.muro); caja(6.95, -13.9, 9.85, -13.65, N.pa, N.balc_e, M.muro);         // pretil al paño exterior (llega a la fachada)
 caja(9.56, -13.94, 9.89, -8.55, N.balc_e, N.balc_e + .1, M.filo); caja(6.95, -13.94, 9.89, -13.61, N.balc_e, N.balc_e + .1, M.filo);
-caja(6.85, -13.9, 7.05, -8.55, N.az - .22, N.az, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
+caja(6.85, -13.94, 7.18, -8.55, N.az - .24, N.az + .01, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
 // cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
 seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
 // cubo de escalera en la azotea: muros lisos y puerta de salida (poniente)
