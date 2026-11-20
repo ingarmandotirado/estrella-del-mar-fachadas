@@ -19,7 +19,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #hora{position:fixed;right:14px;top:14px;padding:8px 12px;font-size:12px;display:flex;gap:8px;align-items:center}
 #hora input{width:110px}
 #teja{position:fixed;right:14px;top:62px;padding:6px 8px;display:flex;gap:6px;align-items:center;font-size:12px}
-#teja button{border:0;width:26px;height:26px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 2px transparent}#teja button.on{box-shadow:0 0 0 2px var(--acc)}#teja button.rj{width:auto;border-radius:13px;padding:0 10px;margin-left:6px;background:#2b2e31;color:#fff;font-size:12px}
+#teja button{border:0;width:26px;height:26px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 2px transparent}#teja button.on{box-shadow:0 0 0 2px var(--acc)}#teja button.rj{width:auto;border-radius:13px;padding:0 10px;background:#2b2e31;color:#fff;font-size:12px}
 #load{position:fixed;inset:0;display:grid;place-items:center;font:600 14px system-ui;background:var(--bg)}
 </style>
 </head>
@@ -343,10 +343,7 @@ const bar = document.getElementById('bar'); let tw = null;
 for (const [n, v] of Object.entries(VIS)){ const b = document.createElement('button'); b.textContent = n; b.onclick = () => ir(n); bar.appendChild(b); }
 function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.textContent === n)); const [p, t] = VIS[n];
   if (inst){ cam.position.set(...p); ctl.target.set(...t); return; } tw = { k: 0, p0: cam.position.clone(), t0: ctl.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t) }; }
-{ const tj = document.getElementById('teja'); tj.append('Teja');
-  for (const [n, [c1, c2, pr]] of Object.entries(TEJAS)){ const b = document.createElement('button'); b.title = n; b.style.background = `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
-    b.onclick = () => { M.teja.map.dispose(); M.teja.map = tejaTex(c1, c2, pr); M.teja.needsUpdate = true; [...tj.querySelectorAll('button')].forEach(x => x.classList.toggle('on', x === b)); };
-    tj.appendChild(b); } tj.querySelector('button').classList.add('on');
+{ const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
   rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb); }
 const hr = document.getElementById('h'); hr.oninput = () => ponerSol(+hr.value); ponerSol(+hr.value);
