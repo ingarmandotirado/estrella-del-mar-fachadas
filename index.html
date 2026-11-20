@@ -131,7 +131,7 @@ for (const y of [N.pa, N.az]) for (const r of [CASA]) { const e = .06, o = .25; 
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
-const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[6.95, -13.55], [6.95, -12.55]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
+const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
 const CB = [99, 99, -99, -99];   // extensión real de los muros del cubo de escalera (para su losa)
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
@@ -158,7 +158,8 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k === 'az' && enR(m, CUBO)) { top = N.cubo - .2; for (const p of [a, b]){ CB[0] = Math.min(CB[0], p[0]); CB[1] = Math.min(CB[1], p[1]); CB[2] = Math.max(CB[2], p[0]); CB[3] = Math.max(CB[3], p[1]); } }                                                                  // cubo de escalera (11.8)
     else if (k === 'az' && m[0] > 7.25 && m[1] < -8.5) continue;                                                       // losa del balcón oriente: solo filo, sin pretil
     if (k === 'pa' && enR(m, BALC_E) && (m[0] > 9.3 || m[1] < -13.4)) continue;                                        // pretiles del balcón oriente: se modelan al paño de la fachada
-    if (k === 'pa' && enR(m, [6.75, -13.7, 7.2, -12.45])) continue;                                                // retazos alrededor de la puerta del balcón                                  // pretiles del balcón oriente (5.15)                                                                  // cubo de escalera
+    if (k === 'pa' && enR(m, [6.8, -13.7, 7.2, -8.4])) continue;   // muro doble de la terraza (x 6.95–7.10): se modela macizo aparte, sin barritas
+    if (k === 'pa' && enR(m, BALC_E) && m[0] > 7.05 && m[0] < 9.3 && m[1] > -13.4) continue;                       // barritas sueltas dentro de la terraza oriente                                                // retazos alrededor de la puerta del balcón                                  // pretiles del balcón oriente (5.15)                                                                  // cubo de escalera
     if (k === 'pa' && !enR(m, CASA)) top = y0 + 1.1;                                                                    // pretiles del balcón
     seg(a, b, y0, top, M.muro); }
   for (const [a, b] of D[k].vidrios){ const L = Math.hypot(a[0] - b[0], a[1] - b[1]), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -191,13 +192,13 @@ caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.65, .9
 { const sombra = std('#6b6f73', .95); caja(2.51, -12.34, 4.76, -12.28, N.pb, N.pa - .22, sombra); caja(5.86, -11.52, 6.97, -11.46, N.pb, N.pa - .22, sombra);
   caja(2.51, -13.5, 4.76, -12.34, N.pa - .26, N.pa - .22, sombra); caja(5.86, -13.5, 6.97, -11.52, N.pa - .26, N.pa - .22, sombra); }
 // balcón oriente de PA: puerta del lado opuesto a la ventana (muro x 6.95, z −9.65 a −8.65), moldura negra corrida en su pretil
-caja(6.88, -9.65, 7.02, -8.65, N.pa, N.az - .22, M.muro);                                                             // se cierra el vano junto a la escalera
-caja(6.92, -13.55, 6.98, -12.55, N.pa, N.pa + 2.4, M.vidrio); caja(6.88, -13.60, 7.02, -12.50, N.pa + 2.4, N.pa + 2.54, M.filo);   // puerta al extremo norte (lado derecho)
-for (const z of [-13.55, -12.55]) caja(6.92, z - .03, 6.98, z + .03, N.pa, N.pa + 2.4, M.marco);
-caja(6.88, -13.55, 7.02, -12.55, N.pa + 2.54, N.az - .22, M.muro);
+// puerta de la terraza oriente en el vano del plano (muro doble x 6.95–7.10, z −12.65 a −11.79), del lado opuesto a la ventana
+caja(7.0, -12.65, 7.05, -11.79, N.pa, N.pa + 2.4, M.vidrio); caja(7.10, -12.70, 7.17, -11.74, N.pa + 2.4, N.pa + 2.54, M.filo);
+for (const z of [-12.65, -11.79]) caja(7.0, z - .03, 7.05, z + .03, N.pa, N.pa + 2.4, M.marco);
+caja(6.95, -12.65, 7.10, -11.79, N.pa + 2.4, N.az - .22, M.muro);
+for (const [z0, z1] of [[-13.65, -12.65], [-11.79, -9.82], [-8.97, -8.44]]) caja(6.95, z0, 7.10, z1, N.pa, N.az - .22, M.muro);   // muro macizo de la terraza entre puerta y ventana
 caja(9.6, -13.9, 9.85, -8.55, N.pa, N.balc_e, M.muro); caja(6.95, -13.9, 9.85, -13.65, N.pa, N.balc_e, M.muro);         // pretil al paño exterior (llega a la fachada)
 caja(9.56, -13.94, 9.89, -8.55, N.balc_e, N.balc_e + .1, M.filo); caja(6.95, -13.94, 9.89, -13.61, N.balc_e, N.balc_e + .1, M.filo);
-caja(6.88, -13.65, 7.02, -13.55, N.pa, N.az - .22, M.muro);
 caja(6.85, -13.9, 7.05, -8.55, N.az - .22, N.az, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
 // cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
 seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
@@ -207,8 +208,12 @@ seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
   caja(x0, z0, x0 + e, -7.25, y0, y1, M.muro); caja(x0, -6.40, x0 + e, z1, y0, y1, M.muro); caja(x0, -7.25, x0 + e, -6.40, y0 + 2.1, y1, M.muro);
   caja(x0 - .02, -7.23, x0 + .04, -6.42, y0, y0 + 2.08, M.puerta); caja(x0 - .06, -7.30, x0 + .02, -6.35, y0 + 2.08, y0 + 2.2, M.filo);
   CB[0] = Math.min(CB[0], x0); CB[1] = Math.min(CB[1], z0); CB[2] = Math.max(CB[2], x1); CB[3] = Math.max(CB[3], z1); }
-// losa del cubo de escalera en la azotea (sobre la extensión real de sus muros)
-if (CB[0] < 90) caja(CB[0] - .1, CB[1] - .1, Math.max(CB[2], 9.91) + .1, CB[3] + .1, N.cubo - .22, N.cubo, M.losa);
+// losa del cubo de escalera en la azotea (sobre la extensión real de sus muros) con moldura negra perimetral
+if (CB[0] < 90){ const [a0, b0, a1, b1] = [CB[0] - .1, CB[1] - .1, Math.max(CB[2], 9.91) + .1, CB[3] + .1], e = .05;
+  caja(a0, b0, a1, b1, N.cubo - .22, N.cubo, M.losa);
+  caja(a0 - e, b0 - e, a1 + e, b0, N.cubo - .22, N.cubo, M.filo); caja(a0 - e, b1, a1 + e, b1 + e, N.cubo - .22, N.cubo, M.filo);
+  caja(a0 - e, b0, a0, b1, N.cubo - .22, N.cubo, M.filo); caja(a1, b0, a1 + e, b1, N.cubo - .22, N.cubo, M.filo); }
+caja(6.85, -8.66, 9.97, -8.55, N.az - .22, N.az, M.filo);                                                                  // filo de losa de azotea a lo largo de la cara norte del cubo
 // marco de la puerta del garage (oriente): pilastras a los lados y trabe encima, salientes 0.15
 { const x = 13.85; for (const [z0, z1] of [[-13.65, -13.25], [-8.84, -8.44]]) caja(x - .05, z0, x + .18, z1, N.pb, N.gar_alero, M.muro);
   caja(x - .05, -13.65, x + .18, -8.44, N.pb + 2.6, N.gar_alero, M.muro); caja(x + .18, -13.68, x + .22, -8.41, N.gar_alero - .14, N.gar_alero, M.filo); }
@@ -263,7 +268,7 @@ for (const x of [-9.1, -7.5, -5.9]) camastro(x, N.terreno, -11.75, 0); sombrilla
 { const g = grupo(-1.45, N.pa, -6.05); pieza(g, .6, .06, 1.1, 0, .38, 0, MOB.madera); for (const [a, b] of [[-.26, -.5], [.26, -.5], [-.26, .5], [.26, .5]]) pieza(g, .05, .35, .05, a, .18, b, MOB.marco); }
 sillon(-1.45, N.pa, -7.35, 0); sillon(-1.45, N.pa, -4.75, Math.PI);                                                    // balcón poniente: mesa baja y dos sillones de exterior
 // balcón oriente de PA: dos sillones con mesita
-sillon(8.25, N.pa, -12.2, Math.PI); sillon(8.25, N.pa, -9.8, 0); mesa(8.25, N.pa, -11.0, .3);
+sillon(8.25, N.pa, -12.2, 0); sillon(8.25, N.pa, -9.8, Math.PI); mesa(8.25, N.pa, -11.0, .3);   // sillones viendo hacia la mesita
 // azotea bajo la pérgola: comedor redondo, dos sillones y sofá; macetas en el roof garden
 comedor(3.5, N.az, -8.45); sillon(2.2, N.az, -6.95, Math.PI / 2); sillon(4.85, N.az, -6.95, -Math.PI / 2); sofa(3.55, N.az, -5.95, Math.PI, 1.9);
 for (const [x, z] of [[.6, -12.1], [.6, -10.6], [.6, -3.0], [8.6, -2.2], [5.8, -1.6]]) maceta(x, N.az, z);
