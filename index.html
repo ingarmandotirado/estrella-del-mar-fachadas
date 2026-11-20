@@ -109,13 +109,14 @@ for (const y of [N.pa, N.az]) for (const r of [CASA]) { const e = .06, o = .25; 
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
+const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[6.95, -9.65], [6.95, -8.65]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
   for (const [p, q] of vids){ const vh = Math.abs(p[0] - q[0]) >= Math.abs(p[1] - q[1]); if (vh !== hz || Math.abs(p[j] - a[j]) > .25) continue;
     const c0 = Math.min(p[i], q[i]), c1 = Math.max(p[i], q[i]); tramos = tramos.flatMap(([t0, t1]) => c1 <= t0 || c0 >= t1 ? [[t0, t1]] : [[t0, c0], [c1, t1]].filter(([u, w]) => w - u > .05)); }
   return tramos.map(([t0, t1]) => hz ? [[t0, a[1]], [t1, a[1]]] : [[a[0], t0], [a[0], t1]]); }
 for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
-  for (const [a0, b0] of D[k].muros) for (const [a, b] of recorta(a0, b0, D[k].vidrios)){ const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  for (const [a0, b0] of D[k].muros) for (const [a, b] of recorta(a0, b0, D[k].vidrios.concat(HUECOS[k] || []))){ const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     if (k !== 'pb' && m[0] > 9.45 && m[1] < -8.3) continue;
     if (k === 'az' && m[0] < -.1) continue;                                                                            // proyección del balcón poniente (abierto, X en el plano)
     if (k === 'az' && enR(m, [1.4, -9.6, 5.7, -5.3])) continue;                                                     // contorno del área cubierta (es la pérgola, no muros)
@@ -139,15 +140,34 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     const sill = L >= 1.6 ? 0 : .9, head = 2.4;
     if (sill) seg(a, b, y0, y0 + sill, M.muro, .14);
     seg(a, b, y0 + sill, y0 + head, M.vidrio, .03); seg(a, b, y0 + head, y1, M.muro, .14);
-    for (const t of [0, 1]){ const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; caja(p[0] - .03, p[1] - .03, p[0] + .03, p[1] + .03, y0 + sill, y0 + head, M.marco); }
+    const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
+    for (const t of [0, 1]){ const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; if (esq(p)) continue; caja(p[0] - .03, p[1] - .03, p[0] + .03, p[1] + .03, y0 + sill, y0 + head, M.marco); }
     if (enR(m, [-.3, -13.95, 9.95, .3]) && !enR(m, [.3, -13.35, 9.3, -.3])){                                           // moldura negra perimetral en ventanas de fachada
       seg(a, b, y0 + head, y0 + head + .14, M.filo, .26); if (sill) seg(a, b, y0 + sill - .1, y0 + sill, M.filo, .26);
       const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]);
-      for (const p of [a, b]){ const q = hz ? [[p[0] - .06, p[1]], [p[0] + .06, p[1]]] : [[p[0], p[1] - .06], [p[0], p[1] + .06]]; seg(q[0], q[1], y0 + (sill ? sill - .1 : 0), y0 + head + .14, M.filo, .26); } } } }
+      for (const p of [a, b]){ if (esq(p)) continue; const q = hz ? [[p[0] - .06, p[1]], [p[0] + .06, p[1]]] : [[p[0], p[1] - .06], [p[0], p[1] + .06]]; seg(q[0], q[1], y0 + (sill ? sill - .1 : 0), y0 + head + .14, M.filo, .26); } } } }
 // muro norte de PB: área de bombas y lavandería abiertas, puerta de servicio de 0.85 entre ambas, trabe arriba
 for (const [x0, x1] of [[4.76, 4.96], [5.81, 5.86]]) caja(x0, -13.65, x1, -13.50, N.pb, N.pa - .22, M.muro);
 caja(4.96, -13.62, 5.81, -13.56, N.pb, N.pb + 2.2, M.madera); caja(4.96, -13.65, 5.81, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
 caja(2.51, -13.65, 6.97, -13.50, N.pa - .55, N.pa - .22, M.muro);
+
+// bodega del muro sur (x 4.28–5.90): puertas de louver de aluminio
+{ const [x0, x1, z] = [4.28, 5.90, -.05], xm = (x0 + x1) / 2, alu = std('#a9aeb2', .4, { metalness: .6 });
+  for (const [u, w] of [[x0 + .02, xm - .01], [xm + .01, x1 - .02]]){ caja(u, z - .03, w, z + .03, N.pb, N.pb + 2.2, alu);
+    for (let i = 0; i < 26; i++) caja(u + .03, z + .03, w - .03, z + .06, N.pb + .08 + i * .08, N.pb + .11 + i * .08, M.marco); }
+  caja(x0, -.15, x1, 0, N.pb + 2.2, N.pa - .22, M.muro); caja(x0 - .06, -.02, x1 + .06, .1, N.pb + 2.2, N.pb + 2.34, M.filo); }
+// puerta del baño (muro norte, x 0.15–0.90) y sombras en las áreas abiertas de bombas y lavandería
+caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.65, .90, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
+{ const sombra = std('#6b6f73', .95); caja(2.51, -12.34, 4.76, -12.28, N.pb, N.pa - .22, sombra); caja(5.86, -11.52, 6.97, -11.46, N.pb, N.pa - .22, sombra);
+  caja(2.51, -13.5, 4.76, -12.34, N.pa - .26, N.pa - .22, sombra); caja(5.86, -13.5, 6.97, -11.52, N.pa - .26, N.pa - .22, sombra); }
+// balcón oriente de PA: puerta del lado opuesto a la ventana (muro x 6.95, z −9.65 a −8.65), moldura negra corrida en su pretil
+caja(6.92, -9.65, 6.98, -8.65, N.pa, N.pa + 2.4, M.vidrio); caja(6.88, -9.70, 7.02, -8.60, N.pa + 2.4, N.pa + 2.54, M.filo);
+for (const z of [-9.65, -8.65]) caja(6.92, z - .03, 6.98, z + .03, N.pa, N.pa + 2.4, M.marco);
+caja(6.95, -9.65, 7.1, -8.65, N.pa + 2.54, N.az - .22, M.muro);
+caja(9.45, -13.9, 9.91, -8.55, N.balc_e - .14, N.balc_e, M.filo); caja(6.95, -13.9, 9.91, -13.6, N.balc_e - .14, N.balc_e, M.filo);
+caja(6.85, -13.9, 7.05, -8.55, N.az - .22, N.az, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
+// cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
+seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
 // barra exterior al poniente de la cocina: asador y tarja (x −0.60 a 0, z −13.65 a −11.25)
 { const [x0, x1, z0, z1, yb] = [-.62, 0, -13.65, -11.25, N.pb + .9];
   caja(x0, z0, x1, z1, N.terreno, yb, M.muro); caja(x0 - .04, z0 - .02, x1, z1 + .02, yb, yb + .05, std('#3a3d40', .35, { metalness: .2 }));
