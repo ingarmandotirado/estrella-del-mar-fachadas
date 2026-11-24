@@ -94,12 +94,12 @@ const garajeTex = () => lienzo(256, (x, rnd, n) => { x.fillStyle = '#3b3d40'; x.
   for (let k = 0; k < 8; k++){ x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, k * 32, n, 2); x.fillStyle = 'rgba(255,255,255,.10)'; x.fillRect(0, k * 32 + 2, n, 1); } });
 const t1 = aplanadoTex(); t1.repeat.set(.5, .5);
 const M = {
-  muro: std('#ffffff', .95, { map: t1, bumpMap: t1, bumpScale: 1.2 }), losa: std('#e8dcc8', .9, { map: t1 }), filo: std('#4a4d50', .65),
+  muro: std('#ffffff', .95, { map: t1 }), losa: std('#e8dcc8', .9, { map: t1 }), filo: std('#4a4d50', .65),
   vidrio: new THREE.MeshStandardMaterial({ color: '#9ec3cf', roughness: .05, metalness: .2, transparent: true, opacity: .42, side: THREE.DoubleSide, depthWrite: false }),
   marco: std('#2b2e31', .5, { metalness: .4 }), teja: std('#8a6a52', .8), pasto: std('#ffffff', 1, { map: pastoTex() }), garaje: std('#ffffff', .55, { map: garajeTex(), metalness: .25 }),
   piso: std('#ffffff', .9, { map: pisoTex() }), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#ffffff', .7, { map: maderaTex() }), calle: std('#ffffff', .95, { map: asfaltoTex() }),
 };
-M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
+M.barandal = M.vidrio.clone(); M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
 // teja: dos tonos comerciales mezclados por pieza (rojo óxido + gris pizarra por defecto); selector en pantalla
 const TEJAS = { 'Terracota (como el render)': ['#a4462a', '#c0603a', .5], 'Rojo vino (2 tonos)': ['#6a2420', '#843526', .5], 'Rojo óxido con gris pizarra': ['#7b3326', '#565a5e', .8], 'Gris pizarra (2 tonos)': ['#474b50', '#5e6267', .5] };
 function tejaTex(c1, c2, pr = .5){ return lienzo(512, (x, rnd, n) => {
@@ -184,7 +184,7 @@ for (const [x, z] of [[BALC_O[0] + .1, BALC_O[1] + .1], [BALC_O[0] + .1, BALC_O[
 { const [a, b, c, d] = BALC_O, e = .05, y0 = N.pa - .24, y1 = N.pa + .01;                                          // canto de la losa del balcón poniente en color moldura: marco de PTR con los postes
   caja(a - e, b - e, a, d + e, y0, y1, M.filo); caja(a - e, b - e, c, b, y0, y1, M.filo); caja(a - e, d, c, d + e, y0, y1, M.filo); }   // postes de la terraza cubierta (el balcón poniente es descubierto)
 // cantos de losa al paño del muro y del mismo aplanado: sin molduras corridas en los entrepisos (solo quedan las de ventanas y puertas)
-for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [y === N.az ? 7.05 : 9.6, -13.65]], [[9.6, 0], [9.6, y === N.az ? -8.55 : -13.65]]]) seg(p, q, y - .22, y, M.muro, .075);
+for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [y === N.az ? 7.05 : 9.6, -13.65]], [[9.6, 0], [9.6, y === N.az ? -8.55 : -13.65]]]) seg(p, q, y - .22, y, M.muro, .07);
 // techo del garage a cuatro aguas parcial (aleros 3.45, cumbrera 4.65)
 { const [x0, z0, x1, z1] = [9.51, -13.65, 13.85, -8.44], zr = -11.01, xr = 11.43, y0 = N.gar_alero, y1 = N.gar_cumbre;
   const v = [x0, y0, z0, x0, y0, z1, x1, y0, z0, x1, y0, z1, xr, y1, zr, x0, y1, zr];   // cumbrera de la casa (x0) al vértice (xr) a 4.65; aleros a 3.45 en norte, sur y oriente
@@ -236,12 +236,16 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
   for (const [a, b] of D[k].vidrios){ const L = Math.hypot(a[0] - b[0], a[1] - b[1]), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     if (k === 'az' && m[0] < -.1) continue;
     if (k !== 'pb' && m[0] > 9.7 && enR(m, [9.6, -8.6, 10.0, -6.25])) continue;
-    if (k === 'az' || (k === 'pa' && !enR(m, CASA))){ seg(a, b, y0, y0 + 1.1, M.vidrio, .03); seg(a, b, y0 + 1.06, y0 + 1.1, M.marco, .05); continue; }   // barandal de cristal
+    if (k === 'az' || (k === 'pa' && !enR(m, CASA))){ seg(a, b, y0, y0 + 1.1, M.barandal, .03); seg(a, b, y0 + 1.06, y0 + 1.1, M.marco, .05); continue; }   // barandal de cristal
     let sill = L >= 1.6 ? 0 : .9, head = 2.4;
     if (k === 'pa' && m[1] < -13.3) sill = .9;                                                                          // muro norte de la recámara: ventana normal
     if (k === 'pa' && enR(m, [9.3, -6.4, 9.8, -4.6])) { sill = 0; head = N.az - .22 - N.pa; }                         // ventanal de piso a techo sobre el acceso                                    // ventanal alto sobre el acceso, a eje con la puerta
-    if (sill) seg(a, b, y0, y0 + sill, M.muro, .14);
-    seg(a, b, y0 + sill, y0 + head, M.vidrio, .03); seg(a, b, y0 + head, y1, M.muro, .14);
+    const ras = (y0_, y1_) => { const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]), c = hz ? a[1] : a[0];      // antepecho y cerramiento al paño del muro (sin abultados)
+      for (const [l, inw] of hz ? [[0, -1], [-13.65, 1]] : [[0, 1], [9.6, -1]]) if (Math.abs(c - l) < .25){ const cc = l + inw * .0575;
+        return seg(hz ? [a[0], cc] : [cc, a[1]], hz ? [b[0], cc] : [cc, b[1]], y0_, y1_, M.muro, .185); }
+      return seg(a, b, y0_, y1_, M.muro, .14); };
+    if (sill) ras(y0, y0 + sill);
+    seg(a, b, y0 + sill, y0 + head, M.vidrio, .03); ras(y0 + head, y1);
     const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
     for (const t of [0, 1]){ const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; if (esq(p)) continue; caja(p[0] - .03, p[1] - .03, p[0] + .03, p[1] + .03, y0 + sill, y0 + head, M.marco); }
     if ((enR(m, [-.3, -13.95, 9.95, .3]) && !enR(m, [.3, -13.35, 9.3, -.3])) || (k === 'pa' && enR(m, [6.8, -13.6, 7.1, -8.6]))){                                           // moldura negra perimetral en ventanas de fachada
@@ -249,17 +253,17 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
       const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]);
       for (const p of [a, b]){ if (esq(p)) continue; const q = hz ? [[p[0] - .06, p[1]], [p[0] + .06, p[1]]] : [[p[0], p[1] - .06], [p[0], p[1] + .06]]; seg(q[0], q[1], y0 + (sill ? sill - .1 : 0), y0 + head + .14, M.filo, .26); } } } }
 // muro norte de PB: área de bombas y lavandería abiertas, puerta de servicio de 0.85 entre ambas, trabe arriba
-for (const [x0, x1] of [[4.76, 4.96], [5.81, 5.86]]) caja(x0, -13.65, x1, -13.50, N.pb, N.pa - .22, M.muro);
-caja(4.96, -13.62, 5.81, -13.56, N.pb, N.pb + 2.2, M.madera); caja(4.96, -13.65, 5.81, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
-caja(2.51, -13.65, 6.97, -13.50, N.pa - .55, N.pa - .22, M.muro);
+for (const [x0, x1] of [[4.76, 4.96], [5.81, 5.86]]) caja(x0, -13.685, x1, -13.50, N.pb, N.pa - .22, M.muro);
+caja(4.96, -13.62, 5.81, -13.56, N.pb, N.pb + 2.2, M.madera); caja(4.96, -13.685, 5.81, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
+caja(2.51, -13.685, 6.97, -13.50, N.pa - .55, N.pa - .22, M.muro);
 
 // bodega del muro sur (x 4.28–5.90): puertas de louver de aluminio
 { const [x0, x1, z] = [4.28, 5.90, -.05], xm = (x0 + x1) / 2, alu = std('#a9aeb2', .4, { metalness: .6 });
   for (const [u, w] of [[x0 + .02, xm - .01], [xm + .01, x1 - .02]]){ caja(u, z - .03, w, z + .03, N.pb, N.pb + 2.2, alu);
     for (let i = 0; i < 26; i++) caja(u + .03, z + .03, w - .03, z + .06, N.pb + .08 + i * .08, N.pb + .11 + i * .08, M.marco); }
-  caja(x0, -.15, x1, 0, N.pb + 2.2, N.pa - .22, M.muro); caja(x0 - .06, -.02, x1 + .06, .1, N.pb + 2.2, N.pb + 2.34, M.filo); }
+  caja(x0, -.15, x1, .035, N.pb + 2.2, N.pa - .22, M.muro); caja(x0 - .06, -.02, x1 + .06, .1, N.pb + 2.2, N.pb + 2.34, M.filo); }
 // puerta del baño (muro norte, x 0.15–0.90) y sombras en las áreas abiertas de bombas y lavandería
-caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.65, .90, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
+caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.685, .90, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
 { const sombra = std('#6b6f73', .95); caja(2.51, -12.34, 4.76, -12.28, N.pb, N.pa - .22, sombra); caja(5.86, -11.52, 6.97, -11.46, N.pb, N.pa - .22, sombra);
   caja(2.51, -13.5, 4.76, -12.34, N.pa - .26, N.pa - .22, sombra); caja(5.86, -13.5, 6.97, -11.52, N.pa - .26, N.pa - .22, sombra); }
 // balcón oriente de PA: puerta del lado opuesto a la ventana (muro x 6.95, z −9.65 a −8.65), moldura negra corrida en su pretil
@@ -300,11 +304,11 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   for (const z of [za, zb]) seg([9.45, z], [xg, z], y0, y1, M.muro, .15);
   const t = piedraTex(); t.repeat.set(1 / 1.6, 1 / 1.6); const pied = std('#ffffff', .9, { map: t, bumpMap: t, bumpScale: 3 });
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
-  caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied);          // costado norte (sobre la cochera y el cubo de azotea)
+  caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied); caja(7.10, za - .12, 9.6, za, N.pa, N.az, pied);   // + costado hacia la terraza oriente          // costado norte (sobre la cochera y el cubo de azotea)
   caja(9.6, zb, xg + .07, zb + .12, y0 - .2, y1, pied); caja(6.93, zb, 9.6, zb + .12, N.az, y1, pied);              // costado sur (porche y cubo de azotea)
   const ap = new THREE.Mesh(new THREE.BoxGeometry(.08, .1, .14), new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.4 })); ap.position.set(xg + .1, N.pb + 2.2, (za + zb) / 2); G.add(ap); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
-for (const [p, q] of [[[0, 0], [6.1, 0]], [[0, 0], [0, -9.67]], [[3.5, -13.65], [7.05, -13.65]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
+for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
 // y suben 1.20 m hacia adentro hasta la altura del pretil. NO: al poniente termina a 10 cm del balcón y al norte llega al límite del baño principal (x 3.50).
 // SE (lado opuesto, misma medida): al sur 3.50 desde la esquina (x 6.10) y al oriente hasta la torre de piedra de la escalera (z −6.31)
@@ -453,12 +457,13 @@ function nadando(x, z, rot){ const [ropa, piel, pelo] = sig(), y = N.terreno + .
   P(new THREE.SphereGeometry(.105, 16, 12), piel, 0, 1.62, .01); P(new THREE.SphereGeometry(.112, 16, 12, 0, 6.3, 0, 1.75), pelo, 0, 1.635, -.012); }
 const comensales = (x, y, z, n) => { for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2 + Math.PI / 4; sentado(x + Math.sin(a) * .72, y, z + Math.cos(a) * .72, a + Math.PI, .48); } };
 const enSillon = (x, y, z, rot) => { const [u, w] = lug(x, z, rot, 0, -.04); sentado(u, y, w, rot, .41); };
-comensales(-1.45, N.pb - .1, -6.05, 6);                                                              // terraza cubierta: comedor de 6
-enSillon(-1.45, N.pa, -7.35, 0); enSillon(-1.45, N.pa, -4.75, Math.PI);                              // balcón poniente
-enSillon(8.25, N.pa, -12.2, 0); enSillon(8.25, N.pa, -9.8, Math.PI);                                 // terraza oriente
-comensales(3.5, N.az, -7.84, 4);                                                                     // roof: comedor de 4, sillones y sofá de 3
-enSillon(2.2, N.az, -6.34, Math.PI / 2); enSillon(4.85, N.az, -6.34, -Math.PI / 2);
-for (const dx of [-.52, 0, .52]){ const [u, w] = lug(3.52, -5.34, Math.PI, dx, -.04); sentado(u, N.az, w, Math.PI, .41); }
+// una persona por mesa o zona de estar (sin saturar)
+const unComensal = (x, y, z, n, i) => { const a = i / n * Math.PI * 2 + Math.PI / 4; sentado(x + Math.sin(a) * .72, y, z + Math.cos(a) * .72, a + Math.PI, .48); };
+unComensal(-1.45, N.pb - .1, -6.05, 6, 1);                                                           // terraza cubierta
+enSillon(-1.45, N.pa, -7.35, 0);                                                                     // balcón poniente
+enSillon(8.25, N.pa, -9.8, Math.PI);                                                                 // terraza oriente
+unComensal(3.5, N.az, -7.84, 4, 2);                                                                  // roof: comedor
+{ const [u, w] = lug(3.52, -5.34, Math.PI, .4, -.04); sentado(u, N.az, w, Math.PI, .41); }          // roof: sofá
 recostado(-9.1, N.terreno, -11.75, 0);                                                               // camastro
 nadando(-8.0, -5.6, Math.PI * .8); nadando(-7.1, -6.5, -Math.PI * .2);                               // alberca
 // alberca: inflables flotando (dona, colchoneta y pelota) con vaivén suave
@@ -470,9 +475,28 @@ nadando(-8.0, -5.6, Math.PI * .8); nadando(-7.1, -6.5, -Math.PI * .2);          
   const pelota = add(new THREE.SphereGeometry(.18, 16, 12), std('#3d8bfd', .3), -6.1, y + .14, -8.6);
   ANIM.push(t => { dona.position.y = y + .06 + Math.sin(t * 1.3) * .015; dona.rotation.z = t * .05; colch.position.y = y + Math.sin(t * 1.1 + 1) * .012; colch.rotation.y = .45 + Math.sin(t * .3) * .08; pelota.position.y = y + .14 + Math.sin(t * 1.7 + 2) * .02; pelota.rotation.x = t * .3; }); }
 // ---- sol (aproximado) y vistas
+// ---- modo noche: cielo azul profundo, luna tenue, ventanas encendidas, alberca iluminada, arbotantes y luces de jardín
+let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add(LUCES);
+{ const L = (c, i, d, x, y, z) => { const l = new THREE.PointLight(c, i, d, 2); l.position.set(x, y, z); LUCES.add(l); };
+  const calida = '#ffc27a';
+  L(calida, 4, 6, 17.15, N.terreno + 1.95, -6.70); L(calida, 4, 6, 17.15, N.terreno + 1.95, -4.28);       // arbotantes de los pilares del acceso
+  L(calida, 5, 7, 10.15, N.pb + 2.2, -7.43); L(calida, 3, 5, 9.6, N.pb + 2.3, -5.5);                       // arbotante de la torre de piedra y porche
+  L('#5fd4ff', 10, 9, -7.49, N.terreno + .1, -6.03);                                                        // alberca iluminada
+  L(calida, 5, 7, -1.45, N.pa - .45, -6.05); L(calida, 4, 6, 8.2, N.pa + 2.2, -11.0);                      // terraza cubierta y terraza oriente
+  L(calida, 6, 8, 3.52, N.az + 2.2, -6.82);                                                                 // pérgola del roof
+  for (const [x, z] of [[2.3, 1.0], [7.3, 1.0], [12.4, -1.6], [-7.4, -.6]]) L('#ffe0a8', 2, 4, x, N.terreno + .35, z);   // luces de jardín
+}
+const DIA = {};
+function ponerNoche(on){ NOCHE = on; LUCES.visible = on;
+  if (on){ Object.assign(DIA, { bg: S.background.clone(), hc: hemi.color.clone(), hg: hemi.groundColor.clone(), hi: hemi.intensity, sc: sol.color.clone(), ex: R.toneMappingExposure });
+    S.background.set('#0b1324'); S.fog.color.set('#0b1324'); hemi.color.set('#3a4f7a'); hemi.groundColor.set('#2a2418'); hemi.intensity = .7; sol.color.set('#9fb6ff'); R.toneMappingExposure = 1.15;
+    M.vidrio.emissive.set('#ffbf73'); M.vidrio.emissiveIntensity = .9; M.vidrio.opacity = .85; M.agua.emissive.set('#1aa6d6'); M.agua.emissiveIntensity = .8; }
+  else { S.background.copy(DIA.bg); S.fog.color.copy(DIA.bg); hemi.color.copy(DIA.hc); hemi.groundColor.copy(DIA.hg); hemi.intensity = DIA.hi; sol.color.copy(DIA.sc); R.toneMappingExposure = DIA.ex;
+    M.vidrio.emissive.set('#000000'); M.vidrio.emissiveIntensity = 1; M.vidrio.opacity = .42; M.agua.emissive.set('#000000'); }
+  ponerSol(+document.getElementById('h').value); }
 function ponerSol(h){ const az = (h - 12) / 12 * Math.PI * 1.05, alt = Math.max(.08, Math.sin((h - 6) / 12 * Math.PI) * 1.15);
   sol.position.set(Math.sin(az) * 60, Math.sin(alt) * 60 + 6, -Math.cos(az) * 25 + 15); sol.target.position.set(4.8, 0, -6.8);
-  sol.intensity = 2.6 * Math.min(1, alt * 2); document.getElementById('ht').textContent = `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`; }
+  sol.intensity = NOCHE ? .35 : 2.6 * Math.min(1, alt * 2); if (NOCHE) sol.position.set(-25, 45, 20); document.getElementById('ht').textContent = `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`; }
 const VIS = { 'Aérea': [[-22, 26, 24], [4.8, 3, -6.8]], 'Fachada sur (calle)': [[4.8, 4.5, 22], [4.8, 4.2, -6.8]], 'Fachada oriente (acceso)': [[32, 5, -6.8], [6.5, 4.2, -6.8]],
   'Fachada poniente (alberca)': [[-24, 5, -6.8], [2, 4.2, -6.8]], 'Fachada norte': [[4.8, 5, -36], [4.8, 4.2, -6.8]], 'Esquina sureste': [[24, 7, 16], [5, 4, -6]], 'Esquina suroeste': [[-18, 7, 14], [3, 4, -6]] };
 const bar = document.getElementById('bar'); let tw = null;
@@ -482,6 +506,8 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
 { const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
+  const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
+  nb.onclick = () => { ponerNoche(!NOCHE); nb.textContent = NOCHE ? '☀ Día' : '☾ Noche'; nb.classList.toggle('on', NOCHE); }; tj.appendChild(nb);
   const fb = document.createElement('button'); fb.className = 'rj'; fb.textContent = '⛶ Pantalla completa'; fb.title = 'Pantalla completa';
   const de = document.documentElement, esFS = () => document.fullscreenElement || document.webkitFullscreenElement;
   fb.onclick = () => { if (esFS()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else (de.requestFullscreen || de.webkitRequestFullscreen).call(de); };
@@ -490,7 +516,7 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
 const hr = document.getElementById('h'); hr.oninput = () => ponerSol(+hr.value); ponerSol(+hr.value);
 function rs(){ const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); } addEventListener('resize', rs); rs();
 ir('Aérea', true); document.getElementById('load').remove();
-window.__v = { cam, ctl, R, S, render: () => { ctl.update(); R.render(S, cam); } };
+window.__v = { cam, ctl, R, S, noche: ponerNoche, render: () => { ctl.update(); R.render(S, cam); } };
 const ck = new THREE.Clock();
 R.setAnimationLoop(() => { const dt = ck.getDelta(); const tt = ck.elapsedTime; ANIM.forEach(f => f(tt)); if (tw){ tw.k = Math.min(1, tw.k + dt / 1.1); const e = tw.k * tw.k * (3 - 2 * tw.k); cam.position.lerpVectors(tw.p0, tw.p1, e); ctl.target.lerpVectors(tw.t0, tw.t1, e); if (tw.k >= 1) tw = null; }
   ctl.update(); R.render(S, cam); });
