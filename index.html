@@ -202,7 +202,7 @@ for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0],
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
-const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]]], az: [[[5.0, -1.215], [5.9, -1.215]]] };   // + acceso al pasillo de servicio sur de la azotea (su entrada original quedó bajo la teja suroriente)   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
+const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]], [[0, -.07], [7.4, -.07]], [[.075, 0], [.075, -2.43]]], az: [[[5.0, -1.215], [5.9, -1.215]]] };   // + acceso al pasillo de servicio sur de la azotea (su entrada original quedó bajo la teja suroriente)   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
 const CB = [99, 99, -99, -99];   // extensión real de los muros del cubo de escalera (para su losa)
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
@@ -314,13 +314,18 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   const yA = N.pb + (y1 - N.pb) * 2 / 3; caja(xg + .07, (za + zb) / 2 - .06, xg + .19, (za + zb) / 2 + .06, yA - .22, yA + .22, M.marco); }   // aplique up/down a 2/3 de la altura de la torre
 // remate de pretiles: moldura cuadrada de 10 cm en color moldura, con 3 cm de vuelo a cada lado (acabado final en azotea, cierres de teja y terraza oriente)
 { const ya = N.pretil, yb = N.pretil + .1, yc = N.balc_e, yd = N.balc_e + .1;
-  for (const [a, b, c, d] of [[-.065, -.175, 6.1, .065], [-.065, -9.67, .175, .065], [3.5, -13.715, 7.13, -13.475], [6.92, -13.715, 7.13, -8.55],      // pretil perimetral e interior
-    [-.145, -9.73, 1.325, -9.61], [1.135, -12.645, 1.355, -9.61], [1.135, -12.675, 3.5, -12.455], [3.44, -13.795, 3.56, -12.455],                    // cierres y pretil interior de la teja NO
-    [6.04, -1.195, 6.16, .145], [6.04, -1.355, 8.625, -1.135], [8.405, -6.31, 8.625, -1.135], [8.405, -6.37, 9.6, -6.25]])                         // cierres y pretil interior de la teja SE
+  for (const [a, b, c, d] of [[-.065, -.175, 6.1, .065], [-.065, -9.67, .175, .065], [3.5, -13.715, 7.13, -13.475], [6.92, -13.715, 7.13, -8.55]])   // pretil perimetral e interior (sin moldura donde hay teja)
     caja(a, b, c, d, ya, yb, M.filo);
   caja(9.45, -13.715, 9.665, -8.55, yc, yd, M.filo); caja(6.92, -13.715, 9.665, -13.5, yc, yd, M.filo); }                                          // terraza oriente
 // detalle opcional en la fachada sur de la planta alta: panel de la misma piedra de la escalera enmarcado con moldura como las ventanas
-const DET = new THREE.Group(); S.add(DET);
+const DET = new THREE.Group(), DET2 = new THREE.Group(), PANO = new THREE.Group(); S.add(DET, DET2, PANO);
+{ const y0 = N.pa + .9, y1 = N.pa + 2.4, yt = N.az - .22, d = .06;
+  const en = (g, ...a) => { const me = caja(...a); G.remove(me); g.add(me); };
+  caja(-.035, -.15, 7.4, .035, N.pa, y0, M.muro); caja(-.035, -2.43, .15, 0, N.pa, y0, M.muro);                // muro bajo la franja
+  caja(-.035, -.15, 7.4, .035, y1, yt, M.muro); caja(-.035, -2.43, .15, 0, y1, yt, M.muro);                    // muro sobre la franja
+  en(PANO, -.035, -.15, 7.4, .035, y0, y1, M.muro); en(PANO, -.035, -2.43, .15, 0, y0, y1, M.muro);           // franja al paño (sin detalle o con detalle 1)
+  M.muro2 = std('#eadccb', .95, { map: t1 });                                                                   // detalle 2: tono arena un poco más oscuro
+  en(DET2, -.035 + d, -.15, 7.4, .035 - d, y0, y1, M.muro2); en(DET2, -.035 + d, -2.43, .15, .035 - d, y0, y1, M.muro2); }   // franja remetida 6 cm, da vuelta en la esquina
 { const x1 = 7.4, zt = -2.43, y0 = N.pa + .9, y1 = N.pa + 2.4, zf = .035, xf = -.035, f = .12, pr = .09;   // da vuelta en la esquina surponiente hasta donde inicia la terraza de la alberca
   const cj = (a, b, c, d, e, g, m) => { const me = caja(a, b, c, d, e, g, m); G.remove(me); DET.add(me); };
   cj(xf - .04, zf - .01, x1, zf + .04, y0, y1, M.piedra); cj(xf - .04, zt, xf + .01, zf + .04, y0, y1, M.piedra);                        // piedra laja (sur y poniente)
@@ -560,8 +565,11 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
 { const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
-  const db = document.createElement('button'); db.className = 'rj on'; db.textContent = 'Detalle'; db.title = 'Panel de piedra con moldura en la fachada sur (opcional)';
-  db.onclick = () => { DET.visible = !DET.visible; db.classList.toggle('on', DET.visible); }; tj.appendChild(db);
+  const d1 = document.createElement('button'), d2 = document.createElement('button'); let modo = 2;
+  d1.className = d2.className = 'rj'; d1.textContent = 'Detalle 1'; d2.textContent = 'Detalle 2';
+  d1.title = 'Piedra con moldura en la fachada sur'; d2.title = 'Bajorrelieve remetido sin marco (propuesta mediterránea moderna)';
+  const ponerDet = m => { modo = m; DET.visible = m === 1; DET2.visible = m === 2; PANO.visible = m !== 2; d1.classList.toggle('on', m === 1); d2.classList.toggle('on', m === 2); };
+  d1.onclick = () => ponerDet(modo === 1 ? 0 : 1); d2.onclick = () => ponerDet(modo === 2 ? 0 : 2); tj.append(d1, d2); ponerDet(2);
   const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
   nb.onclick = () => { ponerNoche(!NOCHE); nb.textContent = NOCHE ? '☀ Día' : '☾ Noche'; nb.classList.toggle('on', NOCHE); }; tj.appendChild(nb);
   const fb = document.createElement('button'); fb.className = 'rj'; fb.textContent = '⛶ Pantalla completa'; fb.title = 'Pantalla completa';
