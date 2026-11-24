@@ -144,8 +144,8 @@ const CASA = [0, -13.65, 9.60, 0], GAR = [6.95, -13.65, 13.85, -8.44], CUBO = [6
 const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(p => p[0]), zs = pts.map(p => p[1]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs); caja(x0 - 1, z0 - 1, x1, z1, 0, N.terreno, M.pasto, false);
   M.banqueta = std('#ffffff', .9, { map: pisoTex() }); M.banqueta.color.set('#b9bab8'); M.banqueta.map.repeat.set(1 / 1.5, 1 / 1.5);   // banqueta gris de concreto
-  caja(x0 - 1, z1, x1, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false); caja(x1, z0 - 1, x1 + 1.5, z1, 0, N.terreno + .02, M.banqueta, false);   // banquetas de 1.50 tras la reja (sur y oriente; la esquina sin banqueta)
-  caja(x0 - 1, z1 + 1.5, x1 + 10, z1 + 10, 0, .3, M.calle, false); caja(x1 + 1.5, z0 - 1, x1 + 10, z1 + 1.5, 0, .3, M.calle, false); caja(x1, z1, x1 + 1.5, z1 + 1.5, 0, .3, M.calle, false); }   // calles                                                       // calle oriente, sin prolongarse más allá del lote
+  caja(x0 - 1, z1, x1, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false); caja(x1, z0 - 1, x1 + 1.5, z1, 0, N.terreno + .02, M.banqueta, false);   // banquetas de 1.50 tras la reja (sur y oriente, unidas en la esquina)
+  caja(x0 - 1, z1 + 1.5, x1 + 10, z1 + 10, 0, .3, M.calle, false); caja(x1 + 1.5, z0 - 1, x1 + 10, z1 + 1.5, 0, .3, M.calle, false); caja(x1, z1, x1 + 1.5, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false); }   // calles; esquina de banqueta unida                                                       // calle oriente, sin prolongarse más allá del lote
 const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) return;
   const me = add(uvMundo(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), 0, (y0 + y1) / 2, 0), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
