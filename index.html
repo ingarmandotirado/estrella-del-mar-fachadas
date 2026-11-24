@@ -124,7 +124,7 @@ caja(6.92, -16.43, 6.98, -15.36, N.terreno + .05, N.terreno + 1.4, M.madera); fo
     caja(xg - .36, zc - .36, xg + .36, zc + .36, hp, hp + .1, M.filo); add(pir, M.filo, xg, hp + .1 + .16, zc);
     caja(xg + .31, zc - .06, xg + .36, zc + .06, N.terreno + 1.8, N.terreno + 2.1, M.marco);
     const l = new THREE.Mesh(new THREE.BoxGeometry(.015, .05, .07), luz); l.position.set(xg + .365, N.terreno + 1.95, zc); G.add(l); }
-  const ya = N.terreno + .05, yb = N.terreno + 2.10, u = za + .03, w = zb - .03;
+  const ya = N.terreno + .05, yb = hp + .1, u = za + .03, w = zb - .03;
   for (const y of [ya, yb - .05]) caja(xg - .025, u, xg + .025, w, y, y + .05, met);
   for (const z of [u, w - .05]) caja(xg - .025, z, xg + .025, z + .05, ya, yb, met);
   const k = Math.round((w - u - .05) / .11); for (let i = 1; i < k; i++){ const z = u + .025 + i * (w - u - .05) / k; caja(xg - .01, z - .01, xg + .01, z + .01, ya + .05, yb - .05, met); }
@@ -251,22 +251,24 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
   const ap = new THREE.Mesh(new THREE.BoxGeometry(.08, .1, .14), new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.4 })); ap.position.set(xg + .1, N.pb + 2.2, (za + zb) / 2); G.add(ap); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
-for (const [p, q] of [[[3.5, 0], [9.6, 0]], [[0, -2.43], [0, -9.67]], [[3.5, -13.65], [7.05, -13.65]], [[9.6, 0], [9.6, -6.31]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
-// losas inclinadas de teja en las esquinas norponiente y surponiente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
-// y suben 1.20 m hacia adentro hasta la altura del pretil; al poniente terminan a 10 cm del balcón, al norte y al sur llegan al límite del baño principal (x 3.50)
+for (const [p, q] of [[[0, 0], [6.1, 0]], [[0, 0], [0, -9.67]], [[3.5, -13.65], [7.05, -13.65]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
+// losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
+// y suben 1.20 m hacia adentro hasta la altura del pretil. NO: al poniente termina a 10 cm del balcón y al norte llega al límite del baño principal (x 3.50).
+// SE (lado opuesto, misma medida): al sur 3.50 desde la esquina (x 6.10) y al oriente hasta la torre de piedra de la escalera (z −6.31)
 { const yb = N.az, yt = N.pretil, ea = -.115, ii = 1.165, k = Math.hypot(ii - ea, yt - yb) / (ii - ea);
   const muroD = M.muro.clone(); muroD.side = THREE.DoubleSide;
   const plano = (P, d, n) => { const pos = [], uv = []; for (const i of [0, 1, 2, 0, 2, 3]){ const [x, y, z] = P[i]; pos.push(x, y, z); uv.push(x * d[0] + z * d[1], (x * n[0] + z * n[1]) * k); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
     const me = new THREE.Mesh(g, M.teja); me.castShadow = me.receiveShadow = true; G.add(me); };
   const tri = (a, b, c) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b, ...c], 3)); g.computeVertexNormals(); const me = new THREE.Mesh(g, muroD); me.castShadow = true; G.add(me); };
-  for (const sg of [1, -1]){                                      // sg = 1: esquina norponiente; sg = -1: esquina surponiente
-    const zp = sg === 1 ? -9.67 : -2.43, zE = sg === 1 ? -13.65 - .115 : .115, zI = sg === 1 ? -13.65 + 1.165 : -1.165;
-    plano([[ea, yb, zp], [ea, yb, zE], [ii, yt, zI], [ii, yt, zp]], [0, 1], [1, 0]);                       // faldón poniente
-    plano([[ea, yb, zE], [3.5, yb, zE], [3.5, yt, zI], [ii, yt, zI]], [1, 0], [0, sg]);                    // faldón norte / sur
-    tri([ea, yb, zp], [ea, yt, zp], [ii, yt, zp]); tri([3.5, yb, zE], [3.5, yt, zE], [3.5, yt, zI]);         // cierres laterales hasta el pretil
-    caja(ii, Math.min(zp, zI), ii + .16, Math.max(zp, zI), yb, yt, M.muro);                                 // pretil interior donde remata la teja
-    caja(ii, Math.min(zI, zI + sg * .16), 3.5, Math.max(zI, zI + sg * .16), yb, yt, M.muro); } }
+  const e = .115, i0 = 1.165;
+  for (const [cx, cz, nx, nz, zF, xF] of [[0, -13.65, -1, -1, -9.67, 3.5], [9.6, 0, 1, 1, -6.31, 6.1]]){   // esquina (línea de muro), normales hacia afuera, fin del faldón en z y en x
+    const XE = cx + nx * e, XI = cx - nx * i0, ZE = cz + nz * e, ZI = cz - nz * i0;
+    plano([[XE, yb, zF], [XE, yb, ZE], [XI, yt, ZI], [XI, yt, zF]], [0, 1], [-nx, 0]);                   // faldón poniente / oriente
+    plano([[XE, yb, ZE], [xF, yb, ZE], [xF, yt, ZI], [XI, yt, ZI]], [1, 0], [0, -nz]);                   // faldón norte / sur
+    tri([XE, yb, zF], [XE, yt, zF], [XI, yt, zF]); tri([xF, yb, ZE], [xF, yt, ZE], [xF, yt, ZI]);         // cierres laterales hasta el pretil
+    caja(Math.min(XI, XI - nx * .16), Math.min(zF, ZI), Math.max(XI, XI - nx * .16), Math.max(zF, ZI), yb, yt, M.muro);   // pretil interior donde remata la teja
+    caja(Math.min(XI, xF), Math.min(ZI, ZI - nz * .16), Math.max(XI, xF), Math.max(ZI, ZI - nz * .16), yb, yt, M.muro); } }
 // entrada principal: porche remetido entre el muro de la escalera y el de la recámara (x 9.10–9.95, z −6.29 a −4.69), piso a 0.50 con escalón,
 // puerta de 1.15 + fijo en el muro x 9.02 y lámpara; el porche queda techado por la losa de la planta alta
 caja(9.10, -6.29, 9.95, -4.69, N.terreno, .50, M.piso); caja(9.95, -6.29, 10.35, -4.69, N.terreno, N.terreno + .03, M.piso);
@@ -304,7 +306,7 @@ sillon(-1.45, N.pa, -7.35, 0); sillon(-1.45, N.pa, -4.75, Math.PI);             
 sillon(8.25, N.pa, -12.2, 0); sillon(8.25, N.pa, -9.8, Math.PI); mesa(8.25, N.pa, -11.0, .3);   // sillones viendo hacia la mesita
 // azotea bajo la pérgola: comedor redondo, dos sillones y sofá; macetas en el roof garden
 comedor(3.5, N.az, -8.45); sillon(2.2, N.az, -6.95, Math.PI / 2); sillon(4.85, N.az, -6.95, -Math.PI / 2); sofa(3.55, N.az, -5.95, Math.PI, 1.9);
-for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [1.75, -3.0], [8.6, -2.2], [5.8, -1.6]]) maceta(x, N.az, z);
+for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [5.8, -1.6]]) maceta(x, N.az, z);
 // grill encendido en la barra poniente: brasas y humo animado
 { const xg = -.31, zg = -13.25, yg = N.pb + 1.07;
   const brasa = new THREE.Mesh(new THREE.BoxGeometry(.4, .02, .6), new THREE.MeshStandardMaterial({ color: '#2a1408', emissive: '#ff5a1a', emissiveIntensity: 1.6 })); brasa.position.set(xg, yg - .03, zg); G.add(brasa);
