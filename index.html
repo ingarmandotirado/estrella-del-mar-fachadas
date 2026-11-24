@@ -154,6 +154,26 @@ for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] -
   let p = a, q = b; if (hz && mz < -16) { p = [Math.min(a[0], 6.95), a[1]]; q = [Math.min(b[0], 6.95), b[1]]; }            // barda norte termina en la barda baja interior
   segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .09); if (!(hz && mz < -16)) RJ.push([p, q]); }   // la barda norte no lleva reja
 // la barda da vuelta hacia el garage en ambos lados del acceso de autos
+// salida de la cochera en concreto estampado (laja tipo pizarra en tono arena): a la izquierda sigue la barda curva del acceso;
+// a la derecha continúa el filo del muro norte de la cochera (z −13.65) y abre en curva hacia la derecha, simétrica a la curva del acceso
+{ const estampadoTex = lienzo(512, (x, rnd, n) => { x.fillStyle = '#7d6a58'; x.fillRect(0, 0, n, n);
+    const C = ['#c8ae90', '#bfa385', '#d2bb9e', '#b89a7b', '#c4a68a', '#ccb497', '#b5987c'];
+    for (let y = 0; y < n;){ const h = Math.min(n - y, 60 + Math.floor(rnd() * 70)); let px = -Math.floor(rnd() * 80);
+      while (px < n){ const w = 70 + Math.floor(rnd() * 110), c = C[Math.floor(rnd() * C.length)]; x.fillStyle = c; x.fillRect(px + 3, y + 3, w - 5, h - 5);
+        for (let k = 0; k < w * h / 14; k++){ x.fillStyle = `rgba(${rnd() < .5 ? '255,245,230' : '90,70,50'},${rnd() * .1})`; x.fillRect(px + 3 + rnd() * (w - 6), y + 3 + rnd() * (h - 6), 1 + rnd() * 3, 1 + rnd() * 2); }
+        x.fillStyle = 'rgba(255,248,235,.18)'; x.fillRect(px + 3, y + 3, w - 5, 2); x.fillStyle = 'rgba(60,45,30,.22)'; x.fillRect(px + 3, y + h - 4, w - 5, 2);
+        px += w; }
+      y += h; } });
+  estampadoTex.repeat.set(1 / 1.4, 1 / 1.4);
+  const pts = [[13.85, -8.52]];
+  for (let i = 12; i >= 0; i--){ const t = i / 12 * Math.PI / 2; pts.push([14.5 + 2.29 * Math.cos(t), -7.01 - 1.51 * Math.sin(t)]); }   // junto a la barda curva del acceso
+  pts.push([17.85, -7.01], [17.85, -15.08]);                                                                                          // hasta la calle
+  for (let i = 0; i <= 12; i++){ const t = i / 12 * Math.PI / 2; pts.push([14.5 + 2.21 * Math.cos(t), -15.08 + 1.43 * Math.sin(t)]); }   // curva derecha (espejo de la del acceso)
+  pts.push([13.85, -13.65]);
+  const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
+  const me = add(g, std('#ffffff', .85, { map: estampadoTex }), 0, N.terreno + .02, 0, false); me.castShadow = false;
+  // guarnición delgada en la curva derecha
+  for (let i = 0; i < 12; i++){ const t0 = i / 12 * Math.PI / 2, t1 = (i + 1) / 12 * Math.PI / 2; segR([14.5 + 2.21 * Math.cos(t0), -15.08 + 1.43 * Math.sin(t0)], [14.5 + 2.21 * Math.cos(t1), -15.08 + 1.43 * Math.sin(t1)], N.terreno, N.terreno + .05, M.piso, .08); } }
 // barda con reja a la derecha del acceso: tramo curvo desde el pilar norte del portón y remate recto contra la cochera
 { const pts = []; for (let i = 0; i <= 12; i++){ const t = i / 12 * Math.PI / 2; pts.push([14.5 + 2.21 * Math.cos(t), -7.01 - 1.43 * Math.sin(t)]); } pts.push([13.85, -8.44]);
   for (let i = 0; i < pts.length - 1; i++){ segR(pts[i], pts[i + 1], N.terreno, N.terreno + 1.2, M.muro, .15); RJ.push([pts[i], pts[i + 1]]); } }
