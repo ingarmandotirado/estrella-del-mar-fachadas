@@ -26,7 +26,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 <body>
 <canvas id="c"></canvas>
 <div id="tit" class="card"><b>Estrella del Mar · Lote 5079-80</b><span>Pre-proyecto · fachadas 3D · Ing. Armando Tirado · ARES Professional</span></div>
-<label id="hora" class="card">Sol <input type="range" id="h" min="7" max="19" step=".25" value="16"> <b id="ht">16:00</b></label>
+<label id="hora" class="card">Sol <input type="range" id="h" min="7" max="19" step=".25" value="17"> <b id="ht">17:00</b></label>
 <nav id="bar" class="card"></nav>
 <div id="teja" class="card"></div>
 <div id="load">Cargando modelo…</div>
@@ -55,46 +55,85 @@ const S = new THREE.Scene(); S.background = new THREE.Color('#cfe2ee'); S.fog = 
 const cam = new THREE.PerspectiveCamera(42, 1, .1, 600);
 const ctl = new OrbitControls(cam, cv); ctl.enableDamping = true; ctl.maxPolarAngle = Math.PI * .49; ctl.minDistance = 4; ctl.maxDistance = 120;
 const hemi = new THREE.HemisphereLight('#eef5fc', '#a8977a', 1.25); S.add(hemi);
-const sol = new THREE.DirectionalLight('#fff1dc', 2.6); sol.castShadow = true; S.add(sol, sol.target);
-const sz = MOVIL ? 1024 : 2048; sol.shadow.mapSize.set(sz, sz); Object.assign(sol.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 140 }); sol.shadow.bias = -.0004; sol.shadow.normalBias = .03;
+const sol = new THREE.DirectionalLight('#ffe4bf', 2.7); sol.castShadow = true; S.add(sol, sol.target);
+const sz = MOVIL ? 1024 : 4096; sol.shadow.mapSize.set(sz, sz); Object.assign(sol.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 140 }); sol.shadow.bias = -.0004; sol.shadow.normalBias = .03;
 // ---- materiales
 const std = (c, r = .9, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: r }, o));
-const noiseTex = (base, var_, n = 256) => { const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'); x.fillStyle = base; x.fillRect(0, 0, n, n);
-  for (let i = 0; i < n * 18; i++){ const v = Math.random(); x.fillStyle = `rgba(${v < .5 ? '0,0,0' : '255,255,255'},${Math.random() * var_})`; x.fillRect(Math.random() * n, Math.random() * n, 1.5, 1.5); }
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t; };
-const t1 = noiseTex('#f2efe8', .05); t1.repeat.set(.6, .6);
+const ANISO = R.capabilities.getMaxAnisotropy();
+const lienzo = (n, dib) => { const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'); let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; dib(x, rnd, n);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = ANISO; return t; };
+const enVuelta = (n, x, y, r, f) => { for (const dx of [0, -n, n]) for (const dy of [0, -n, n]) if (x + dx > -r && x + dx < n + r && y + dy > -r && y + dy < n + r) f(x + dx, y + dy); };   // dibujo continuo en los bordes (textura sin costuras)
+const noiseTex = (base, var_, n = 256) => lienzo(n, (x, rnd) => { x.fillStyle = base; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < n * 18; i++){ x.fillStyle = `rgba(${rnd() < .5 ? '0,0,0' : '255,255,255'},${rnd() * var_})`; x.fillRect(rnd() * n, rnd() * n, 1.5, 1.5); } });
+// aplanado texturizado crema (llaneado con manchas suaves y trazos de llana), 1024 px = 2 m
+const aplanadoTex = () => lienzo(1024, (x, rnd, n) => { x.fillStyle = '#efdcc2'; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 1600; i++){ const cx = rnd() * n, cy = rnd() * n, rr = 8 + rnd() * 40, cl = rnd() < .5 ? '255,248,236' : '175,145,110', a = .012 + rnd() * .02;
+    enVuelta(n, cx, cy, rr, (u, v) => { const g = x.createRadialGradient(u, v, 0, u, v, rr); g.addColorStop(0, `rgba(${cl},${a})`); g.addColorStop(1, `rgba(${cl},0)`); x.fillStyle = g; x.fillRect(u - rr, v - rr, rr * 2, rr * 2); }); }
+  x.lineCap = 'round';
+  for (let i = 0; i < 2600; i++){ const cx = rnd() * n, cy = rnd() * n, rr = 8 + rnd() * 26, a0 = rnd() * 6.3, da = .6 + rnd() * 1.6, lw = .8 + rnd() * 2.4, cl = rnd() < .55 ? `rgba(255,250,240,${.07 + rnd() * .08})` : `rgba(150,120,88,${.04 + rnd() * .05})`;
+    enVuelta(n, cx, cy, rr + 3, (u, v) => { x.strokeStyle = cl; x.lineWidth = lw; x.beginPath(); x.arc(u, v, rr, a0, a0 + da); x.stroke(); }); }
+  for (let i = 0; i < n * 30; i++){ x.fillStyle = `rgba(${rnd() < .5 ? '90,70,50' : '255,255,255'},${rnd() * .06})`; x.fillRect(rnd() * n, rnd() * n, 1.2, 1.2); } });
+// pasto en franjas de corte con hojas finas, 512 px = 2.5 m
+const pastoTex = () => lienzo(512, (x, rnd, n) => { x.fillStyle = '#5f8a3a'; x.fillRect(0, 0, n, n);
+  for (let k = 0; k < 4; k++){ x.fillStyle = k % 2 ? 'rgba(255,255,200,.035)' : 'rgba(0,30,0,.035)'; x.fillRect(0, k * n / 4, n, n / 4); }
+  const C = ['#4f7a2e', '#6e9a45', '#7fa852', '#46702a', '#88b05c', '#5a8636'];
+  for (let i = 0; i < 26000; i++){ const u = rnd() * n, v = rnd() * n, h = 3 + rnd() * 7, d = (rnd() - .5) * 3; x.strokeStyle = C[Math.floor(rnd() * C.length)]; x.globalAlpha = .55 + rnd() * .45; x.lineWidth = .8 + rnd() * .8;
+    enVuelta(n, u, v, 10, (a, b) => { x.beginPath(); x.moveTo(a, b); x.lineTo(a + d, b - h); x.stroke(); }); }
+  x.globalAlpha = 1; });
+// concreto en losetas de 1 m (banqueta, porche, coronamiento de alberca)
+const pisoTex = () => lienzo(256, (x, rnd, n) => { x.fillStyle = '#d9d3c7'; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 9000; i++){ x.fillStyle = `rgba(${rnd() < .5 ? '80,70,60' : '255,255,255'},${rnd() * .09})`; x.fillRect(rnd() * n, rnd() * n, 1.4, 1.4); }
+  x.fillStyle = 'rgba(90,80,70,.45)'; x.fillRect(0, 0, n, 2); x.fillRect(0, 0, 2, n); });
+const asfaltoTex = () => lienzo(512, (x, rnd, n) => { x.fillStyle = '#4f5052'; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 60000; i++){ const g = 40 + rnd() * 90 | 0; x.fillStyle = `rgba(${g},${g},${g + 2},${.25 + rnd() * .4})`; x.fillRect(rnd() * n, rnd() * n, 1.3, 1.3); } });
+const maderaTex = () => lienzo(512, (x, rnd, n) => { x.fillStyle = '#9a6a44'; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 900; i++){ const u = rnd() * n, w = .6 + rnd() * 2.5; x.fillStyle = rnd() < .5 ? `rgba(70,40,20,${.08 + rnd() * .15})` : `rgba(210,160,110,${.06 + rnd() * .1})`; x.fillRect(u, 0, w, n); }
+  for (let i = 0; i < 40; i++){ const u = rnd() * n, v = rnd() * n; x.strokeStyle = 'rgba(60,35,18,.25)'; x.lineWidth = 1; x.beginPath(); x.ellipse(u, v, 3 + rnd() * 4, 10 + rnd() * 18, 0, 0, 6.3); x.stroke(); } });
+const garajeTex = () => lienzo(256, (x, rnd, n) => { x.fillStyle = '#3b3d40'; x.fillRect(0, 0, n, n);
+  for (let i = 0; i < 5000; i++){ x.fillStyle = `rgba(255,255,255,${rnd() * .03})`; x.fillRect(rnd() * n, rnd() * n, 2, 1); }
+  for (let k = 0; k < 8; k++){ x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, k * 32, n, 2); x.fillStyle = 'rgba(255,255,255,.10)'; x.fillRect(0, k * 32 + 2, n, 1); } });
+const t1 = aplanadoTex(); t1.repeat.set(.5, .5);
 const M = {
-  muro: std('#f7f4ee', .9, { map: t1 }), losa: std('#e4e0d8', .85), filo: std('#5b5f63', .7),
+  muro: std('#ffffff', .95, { map: t1, bumpMap: t1, bumpScale: 1.2 }), losa: std('#e8dcc8', .9, { map: t1 }), filo: std('#4a4d50', .65),
   vidrio: new THREE.MeshStandardMaterial({ color: '#9ec3cf', roughness: .05, metalness: .2, transparent: true, opacity: .42, side: THREE.DoubleSide, depthWrite: false }),
-  marco: std('#2b2e31', .5, { metalness: .4 }), teja: std('#8a6a52', .8), pasto: std('#7d9a52', 1, { map: noiseTex('#7d9a52', .12) }),
-  piso: std('#d8d2c4', .9), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#9b6d48', .75), calle: std('#7b7c7a', .95),
+  marco: std('#2b2e31', .5, { metalness: .4 }), teja: std('#8a6a52', .8), pasto: std('#ffffff', 1, { map: pastoTex() }), garaje: std('#ffffff', .55, { map: garajeTex(), metalness: .25 }),
+  piso: std('#ffffff', .9, { map: pisoTex() }), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#ffffff', .7, { map: maderaTex() }), calle: std('#ffffff', .95, { map: asfaltoTex() }),
 };
-M.pasto.map.repeat.set(8, 8);
+M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
 // teja: dos tonos comerciales mezclados por pieza (rojo óxido + gris pizarra por defecto); selector en pantalla
-const TEJAS = { 'Rojo vino (2 tonos)': ['#6a2420', '#843526', .5], 'Rojo óxido con gris pizarra': ['#7b3326', '#565a5e', .8], 'Gris pizarra (2 tonos)': ['#474b50', '#5e6267', .5] };
-function tejaTex(c1, c2, pr = .5){ const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const rnd = (() => { let s = 7; return () => (s = (s * 9301 + 49297) % 233280) / 233280; })();
-  const sh = (hex, f) => { const n = parseInt(hex.slice(1), 16); return `rgb(${Math.min(255, ((n >> 16) & 255) * f) | 0},${Math.min(255, ((n >> 8) & 255) * f) | 0},${Math.min(255, (n & 255) * f) | 0})`; };
-  for (let r = 0; r < 16; r++) for (let k = -1; k < 9; k++){ const off = r % 2 ? 16 : 0, col = rnd() < pr ? c1 : c2, x0 = k * 32 + off, f = .92 + rnd() * .14;
-    const g = x.createLinearGradient(x0, 0, x0 + 32, 0); g.addColorStop(0, sh(col, .72 * f)); g.addColorStop(.45, sh(col, 1.12 * f)); g.addColorStop(1, sh(col, .72 * f));
-    x.fillStyle = g; x.fillRect(x0, r * 16, 32, 15); x.fillStyle = 'rgba(10,8,8,.55)'; x.fillRect(0, r * 16 + 15, 256, 1); }
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(.3, .3); return t; }
-{ const t = tejaTex(...Object.values(TEJAS)[0]);
-  M.teja = new THREE.MeshStandardMaterial({ map: t, roughness: .8, side: THREE.DoubleSide }); }
+const TEJAS = { 'Terracota (como el render)': ['#a4462a', '#c0603a', .5], 'Rojo vino (2 tonos)': ['#6a2420', '#843526', .5], 'Rojo óxido con gris pizarra': ['#7b3326', '#565a5e', .8], 'Gris pizarra (2 tonos)': ['#474b50', '#5e6267', .5] };
+function tejaTex(c1, c2, pr = .5){ return lienzo(512, (x, rnd, n) => {
+  const sh = (hex, f) => { const v = parseInt(hex.slice(1), 16); return `rgb(${Math.min(255, ((v >> 16) & 255) * f) | 0},${Math.min(255, ((v >> 8) & 255) * f) | 0},${Math.min(255, (v & 255) * f) | 0})`; };
+  x.fillStyle = '#3a1a10'; x.fillRect(0, 0, n, n);
+  for (let r = 0; r < 16; r++) for (let k = 0; k < 16; k++){ const col = rnd() < pr ? c1 : c2, f = .88 + rnd() * .2, x0 = k * 32, y0 = r * 32;
+    const g = x.createLinearGradient(x0, 0, x0 + 32, 0); g.addColorStop(0, sh(col, .55 * f)); g.addColorStop(.35, sh(col, 1.08 * f)); g.addColorStop(.5, sh(col, 1.18 * f)); g.addColorStop(.75, sh(col, .95 * f)); g.addColorStop(1, sh(col, .5 * f));
+    x.fillStyle = g; x.fillRect(x0, y0, 32, 31);
+    const v = x.createLinearGradient(0, y0, 0, y0 + 32); v.addColorStop(0, 'rgba(25,8,4,.55)'); v.addColorStop(.22, 'rgba(25,8,4,0)'); v.addColorStop(.85, 'rgba(255,220,180,.05)'); v.addColorStop(1, 'rgba(255,220,180,.12)');
+    x.fillStyle = v; x.fillRect(x0, y0, 32, 31);
+    for (let i = 0; i < 40; i++){ x.fillStyle = `rgba(${rnd() < .5 ? '40,15,5' : '255,210,170'},${rnd() * .12})`; x.fillRect(x0 + rnd() * 32, y0 + rnd() * 31, 1.5, 1.5); } }
+  }); }
+function tejaHD(c1, c2, pr){ const t = tejaTex(c1, c2, pr); t.needsUpdate = true; t.repeat.set(.3, .3); return t; }
+{ const t = tejaHD(...Object.values(TEJAS)[0]);
+  M.teja = new THREE.MeshStandardMaterial({ map: t, bumpMap: t, bumpScale: 2, roughness: .75, side: THREE.DoubleSide }); }
 // piedra laja beige para el muro frontal de la escalera
-function piedraTex(){ const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d'); let sd = 21; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-  const COL = ['#d8c6a6', '#cdb894', '#e3d4b8', '#c2aa86', '#d1bd9b', '#b9a07c', '#e8dcc4', '#c9b08c'];
-  x.fillStyle = '#8f7f68'; x.fillRect(0, 0, 512, 512);
-  for (let y = 0; y < 512;){ const h = 22 + Math.floor(rnd() * 22); let px = -Math.floor(rnd() * 40);
-    while (px < 512){ const w = 40 + Math.floor(rnd() * 90), col = COL[Math.floor(rnd() * COL.length)];
-      x.fillStyle = col; x.fillRect(px + 2, y + 2, w - 3, h - 3);
-      x.fillStyle = 'rgba(110,92,70,.18)'; x.fillRect(px + 2, y + h - 7, w - 3, 5);
-      for (let k = 0; k < 14; k++){ x.fillStyle = rnd() < .5 ? 'rgba(255,250,240,.10)' : 'rgba(90,75,55,.10)'; x.fillRect(px + 2 + rnd() * (w - 6), y + 2 + rnd() * (h - 6), 2 + rnd() * 6, 1 + rnd() * 3); }
+function piedraTex(){ return lienzo(1024, (x, rnd, n) => {
+  const COL = ['#dcc199', '#cfae7c', '#e6d1ab', '#c49f6c', '#d8b98a', '#b8925f', '#ead9b8', '#cba776', '#d4b384'];
+  x.fillStyle = '#9c8566'; x.fillRect(0, 0, n, n);
+  for (let y = 0; y < n;){ const h = Math.min(n - y, 30 + Math.floor(rnd() * 34)); let px = -Math.floor(rnd() * 60);
+    while (px < n){ const w = 60 + Math.floor(rnd() * 150), col = COL[Math.floor(rnd() * COL.length)], gx = px + 3, gy = y + 3, gw = w - 5, gh = h - 5;
+      x.fillStyle = col; x.fillRect(gx, gy, gw, gh);
+      for (let k = 0; k < gw * gh / 18; k++){ x.fillStyle = `rgba(${rnd() < .5 ? '255,250,235' : '110,85,55'},${rnd() * .12})`; x.fillRect(gx + rnd() * gw, gy + rnd() * gh, 1 + rnd() * 3, 1 + rnd() * 2); }
+      x.fillStyle = 'rgba(255,248,230,.28)'; x.fillRect(gx, gy, gw, 3); x.fillRect(gx, gy, 3, gh);
+      x.fillStyle = 'rgba(70,52,32,.30)'; x.fillRect(gx, gy + gh - 4, gw, 4); x.fillRect(gx + gw - 3, gy, 3, gh);
       px += w; }
-    y += h; }
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t; }
+    y += h; } }); }
 const G = new THREE.Group(); S.add(G);
 const add = (geo, mat, x, y, z, cast = true) => { const me = new THREE.Mesh(geo, mat); me.position.set(x, y, z); me.castShadow = cast; me.receiveShadow = true; G.add(me); return me; };
-const caja = (x0, z0, x1, z1, y0, y1, mat, cast = true) => add(new THREE.BoxGeometry(Math.max(.02, Math.abs(x1 - x0)), Math.max(.02, y1 - y0), Math.max(.02, Math.abs(z1 - z0))), mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, cast);
+function uvMundo(g, px = 0, py = 0, pz = 0){ const p = g.attributes.position, nn = g.attributes.normal, uv = g.attributes.uv;
+  for (let i = 0; i < p.count; i++){ const X = p.getX(i) + px, Y = p.getY(i) + py, Z = p.getZ(i) + pz;
+    if (Math.abs(nn.getX(i)) > .5) uv.setXY(i, -Z * Math.sign(nn.getX(i)), Y); else if (Math.abs(nn.getY(i)) > .5) uv.setXY(i, X, Z); else uv.setXY(i, X * Math.sign(nn.getZ(i)), Y); }
+  uv.needsUpdate = true; return g; }
+const caja = (x0, z0, x1, z1, y0, y1, mat, cast = true) => add(uvMundo(new THREE.BoxGeometry(Math.max(.02, Math.abs(x1 - x0)), Math.max(.02, y1 - y0), Math.max(.02, Math.abs(z1 - z0))), (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, cast);
 const seg = (a, b, y0, y1, mat, e = .07) => { const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]);
   return hz ? caja(Math.min(a[0], b[0]), a[1] - e / 2, Math.max(a[0], b[0]), a[1] + e / 2, y0, y1, mat) : caja(a[0] - e / 2, Math.min(a[1], b[1]), a[0] + e / 2, Math.max(a[1], b[1]), y0, y1, mat); };
 const enR = (p, r) => p[0] >= r[0] - .01 && p[0] <= r[2] + .01 && p[1] >= r[1] - .01 && p[1] <= r[3] + .01;
@@ -107,7 +146,7 @@ const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(
   caja(x0 - 1, z1 + 1, x1 + 10, z1 + 10, 0, .3, M.calle, false); caja(x0 - 1, z1 + 1, x1 + 1, z1 + 2.6, .3, .45, M.piso, false);   // calle sur; banqueta solo frente al lote (la esquina va sin banqueta)
   caja(x1 + 1, z0 - 1, x1 + 10, z1 + 1, 0, .3, M.calle, false); }                                                       // calle oriente, sin prolongarse más allá del lote
 const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) return;
-  const me = add(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
+  const me = add(uvMundo(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), 0, (y0 + y1) / 2, 0), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
 for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] - b[1]) < .05;
   if (hz && (Math.abs(mz + 15.47) < .1 || (mz > 1.7 && mz < 1.9))) continue;                                         // líneas interiores (andador y banqueta), no barda
@@ -153,7 +192,11 @@ for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0],
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(tri, 3)); g.computeVertexNormals();
   const uv = []; for (let i = 0; i < tri.length; i += 3) uv.push(tri[i], tri[i + 2]); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   const me = new THREE.Mesh(g, M.teja); me.castShadow = me.receiveShadow = true; G.add(me);
-  caja(6.95, -13.65, 9.51, -8.44, N.gar_alero - .2, N.gar_alero, M.losa); }
+  caja(6.95, -13.65, 9.51, -8.44, N.gar_alero - .2, N.gar_alero, M.losa);
+  { const muroD = M.muro.clone(); muroD.side = THREE.DoubleSide; const g = new THREE.BufferGeometry();                 // hastial poniente cerrado (los huecos bajo la losa de la terraza)
+    g.setAttribute('position', new THREE.Float32BufferAttribute([x0, y0, z0, x0, y0, z1, x0, y1, zr], 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute([z0, y0, z1, y0, zr, y1], 2)); g.computeVertexNormals();
+    const me2 = new THREE.Mesh(g, muroD); me2.castShadow = true; G.add(me2);
+    caja(x0 - .05, z0, x0 + .14, z1, y0 - .25, y0, M.muro); } }
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
@@ -172,13 +215,13 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k === 'pa' && enR(m, [8.7, -6.35, 9.45, -4.65])) continue;
     if (k !== 'pb' && enR(m, [9.62, -6.1, 10.1, -4.9])) continue;                                                  // huella del andador repetida en PA/azotea (los dos retazos sobre la puerta)                                                 // restos de líneas detrás del ventanal del acceso                                                     // contorno del área cubierta (es la pérgola, no muros)
     if (k !== 'pb' && m[0] > 9.7 && enR(m, [9.6, -8.6, 10.0, -6.25])) continue;                                    // cara oriente de la escalera: cristal
-    if (k === 'pb' && m[0] > 13.4 && m[1] < -8.5) { seg(a, b, y0, y0 + 2.6, M.puerta, .1); seg(a, b, y0 + 2.6, N.gar_alero - .2, M.muro, .3); continue; }   // puerta del garage (oriente)
+    if (k === 'pb' && m[0] > 13.4 && m[1] < -8.5) { seg(a, b, y0, y0 + 2.6, M.garaje, .1); seg(a, b, y0 + 2.6, N.gar_alero, M.muro, .3); continue; }   // puerta del garage (oriente)
     if ((k !== 'pb' && m[0] > 9.95) || (k === 'pb' && m[0] > 9.62 && m[1] > -8.3)) continue;
     if (k === 'pb' && m[0] > -.7 && m[0] < .02 && m[1] < -11.1) continue;
     if (k === 'pb' && Math.abs(m[1] + 13.6) < .12 && Math.abs(a[1] - b[1]) < .05 && m[0] > 2.4 && m[0] < 7.0) continue;   // muro norte: tramo abierto (línea discontinua) y puerta                                          // barra exterior de asador y tarja (se modela aparte)
     if (k === 'pb' && m[0] > 8.9 && m[0] < 9.6 && m[1] < -4.6 && m[1] > -6.35 && Math.abs(a[0] - b[0]) < .05) continue;   // líneas del porche y de la puerta (se modelan aparte)                          // huellas del andador de acceso (no son muros)                                                        // contorno del techo del garage (no es muro)                                                                           // contorno del techo del garage (no es muro)
     let top = y1;
-    if (k === 'pb' && m[0] > 9.7) top = N.gar_alero - .2;                                                              // garage
+    if (k === 'pb' && m[0] > 9.7) top = N.gar_alero;                                                              // garage
     if (k === 'az' && enR(m, [6.8, -8.7, 10.1, -6.15])) continue;
     if (k === 'az' && (Math.abs(m[1]) < .25 || Math.abs(m[0]) < .25 || (Math.abs(m[1] + 13.6) < .2 && m[0] < 7.2) || (Math.abs(m[0] - 9.53) < .15 && m[1] > -6.4) || (Math.abs(m[0] - 7.02) < .2 && m[1] < -8.5))) continue;   // duplicados del pretil continuo                                                   // cubo de escalera: se modela liso aparte
     if (k === 'az' && enR(m, CUBO)) { top = N.cubo - .2; for (const p of [a, b]){ CB[0] = Math.min(CB[0], p[0]); CB[1] = Math.min(CB[1], p[1]); CB[2] = Math.max(CB[2], p[0]); CB[3] = Math.max(CB[3], p[1]); } }                                                                  // cubo de escalera (11.8)
@@ -253,7 +296,7 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
 // escalera: muro frontal (oriente, x 9.91) forrado completo de piedra laja beige, sin cristal; remate oscuro arriba
 { const xg = 9.91, za = -8.55, zb = -6.31, y0 = N.pb, y1 = N.cubo - .2;
   for (const z of [za, zb]) seg([9.45, z], [xg, z], y0, y1, M.muro, .15);
-  const t = piedraTex(); t.repeat.set((zb - za + .16) / 1.3, (y1 - y0 + .2) / 1.3); const pied = std('#ffffff', .95, { map: t });
+  const t = piedraTex(); t.repeat.set(1 / 1.6, 1 / 1.6); const pied = std('#ffffff', .9, { map: t, bumpMap: t, bumpScale: 3 });
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
   const ap = new THREE.Mesh(new THREE.BoxGeometry(.08, .1, .14), new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.4 })); ap.position.set(xg + .1, N.pb + 2.2, (za + zb) / 2); G.add(ap); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
