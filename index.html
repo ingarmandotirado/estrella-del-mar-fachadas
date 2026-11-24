@@ -490,7 +490,6 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
   const SP = (c, i, d, ang, x, y, z, tx, ty, tz) => { const l = new THREE.SpotLight(c, i, d, ang, .6, 2); l.position.set(x, y, z); l.target.position.set(tx, ty, tz); LUCES.add(l, l.target); };
   const disco = (x, y, z, r = .05, eje = 'y') => { const g = new THREE.CylinderGeometry(r, r, .015, 16); if (eje === 'z') g.rotateX(Math.PI / 2); if (eje === 'x') g.rotateZ(Math.PI / 2); add(g, M.lampara, x, y, z, false); };
   P(calida, 3, 5, 17.15, N.terreno + 1.95, -6.70); P(calida, 3, 5, 17.15, N.terreno + 1.95, -4.28);                                   // 1
-  for (const z of [-7.95, -6.9]){ SP(calida, 45, 14, .3, 10.3, N.terreno + .06, z, 9.96, 11.2, z); caja(10.2, z - .08, 10.4, z + .08, N.terreno, N.terreno + .03, M.marco); disco(10.3, N.terreno + .035, z, .055); }   // 2
   P(calida, 2.5, 4, 9.6, N.pb + 2.3, -5.5);
   for (const x of [3.82, 6.98]){ add(new THREE.CylinderGeometry(.055, .055, .3, 16), M.marco, x, N.pb + 2.3, .1); disco(x, N.pb + 2.45, .1, .045); disco(x, N.pb + 2.15, .1, .045);   // 3
     SP(calida, 14, 5, .38, x, N.pb + 2.46, .18, x, N.pb + 5, .12); SP(calida, 14, 5, .38, x, N.pb + 2.14, .18, x, N.terreno, .35); }
