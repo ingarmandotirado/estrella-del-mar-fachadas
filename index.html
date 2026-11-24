@@ -307,11 +307,18 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
 // escalera: muro frontal (oriente, x 9.91) forrado completo de piedra laja beige, sin cristal; remate oscuro arriba
 { const xg = 9.91, za = -8.55, zb = -6.31, y0 = N.pb, y1 = N.cubo - .2;
   for (const z of [za, zb]) seg([9.45, z], [xg, z], y0, y1, M.muro, .15);
-  const t = piedraTex(); t.repeat.set(1 / 1.6, 1 / 1.6); const pied = std('#ffffff', .9, { map: t, bumpMap: t, bumpScale: 3 });
+  const t = piedraTex(); t.repeat.set(1 / 1.6, 1 / 1.6); const pied = std('#ffffff', .9, { map: t, bumpMap: t, bumpScale: 3 }); M.piedra = pied;
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
   caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied); caja(7.10, za - .12, 9.6, za, N.pa, N.az, pied);   // + costado hacia la terraza oriente          // costado norte (sobre la cochera y el cubo de azotea)
   caja(9.6, zb, xg + .07, zb + .12, y0 - .2, y1, pied); caja(6.93, zb, 9.6, zb + .12, N.az, y1, pied);              // costado sur (porche y cubo de azotea)
   const yA = N.pb + (y1 - N.pb) * 2 / 3; caja(xg + .07, (za + zb) / 2 - .06, xg + .19, (za + zb) / 2 + .06, yA - .22, yA + .22, M.marco); }   // aplique up/down a 2/3 de la altura de la torre
+// detalle opcional en la fachada sur de la planta alta: panel de la misma piedra de la escalera enmarcado con moldura como las ventanas
+const DET = new THREE.Group(); S.add(DET);
+{ const x0 = .6, x1 = 7.4, y0 = N.pa + .9, y1 = N.pa + 2.4, zf = .035, f = .12, pr = .09;
+  const cj = (a, b, c, d, e, g, m) => { const me = caja(a, b, c, d, e, g, m); G.remove(me); DET.add(me); };
+  cj(x0, zf - .01, x1, zf + .04, y0, y1, M.piedra);                                                         // piedra laja
+  cj(x0 - f, zf - .01, x1 + f, zf + pr, y1, y1 + .14, M.filo); cj(x0 - f, zf - .01, x1 + f, zf + pr, y0 - .1, y0, M.filo);   // moldura superior e inferior
+  cj(x0 - f, zf - .01, x0, zf + pr, y0, y1, M.filo); cj(x1, zf - .01, x1 + f, zf + pr, y0, y1, M.filo); }                     // jambas
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
@@ -546,6 +553,8 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
 { const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
+  const db = document.createElement('button'); db.className = 'rj on'; db.textContent = 'Detalle'; db.title = 'Panel de piedra con moldura en la fachada sur (opcional)';
+  db.onclick = () => { DET.visible = !DET.visible; db.classList.toggle('on', DET.visible); }; tj.appendChild(db);
   const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
   nb.onclick = () => { ponerNoche(!NOCHE); nb.textContent = NOCHE ? '☀ Día' : '☾ Noche'; nb.classList.toggle('on', NOCHE); }; tj.appendChild(nb);
   const fb = document.createElement('button'); fb.className = 'rj'; fb.textContent = '⛶ Pantalla completa'; fb.title = 'Pantalla completa';
