@@ -497,8 +497,9 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
   for (const x of [15.3, 13.7, 12.1]){ caja(x - .06, -6.27, x + .06, -6.15, N.terreno, N.terreno + .62, M.marco); caja(x - .065, -6.275, x + .065, -6.145, N.terreno + .48, N.terreno + .56, M.lampara);   // 4
     if (!MOVIL) P(calida, 1.4, 2.6, x, N.terreno + .52, -6.0); }
   for (const z of [-7.6, -4.5]){ disco(-1.45, N.pa - .226, z, .07); SP(calida, 16, 6, .7, -1.45, N.pa - .25, z, -1.45, N.pb, z); }      // 5
-  for (const z of [-9.4, -12.7]){ disco(14.05, N.gar_alero - .01, z, .06); SP(calida, 16, 6, .6, 14.05, N.gar_alero - .05, z, 14.7, N.terreno, z); }   // 6
-  P('#5fd4ff', 7, 8, -7.49, N.terreno + .05, -6.03);                                                                                        // 7
+  for (const z of [-9.4, -12.7]){ disco(14.05, N.gar_alero - .01, z, .06); SP(calida, 30, 8, .8, 14.05, N.gar_alero - .05, z, 14.9, N.terreno, z); }   // 6
+  P('#5fd4ff', 7, 8, -7.49, N.terreno + .05, -6.03);
+  { const rel = new THREE.DirectionalLight('#8fa3d6', .55); rel.position.set(12, 30, -45); rel.target.position.set(5, 0, -7); LUCES.add(rel, rel.target); }   // luz base de ambiente (luna difusa y alumbrado de calle) sobre los costados norte y oriente                                                                                        // 7
   if (!MOVIL) for (const [x, z] of [[2.3, 1.0], [7.3, 1.0], [12.4, -1.6], [-7.4, -.6]]){ SP('#ffe0a8', 7, 4, .65, x, N.terreno + .06, z, x, N.terreno + 1.6, z - .2); add(new THREE.CylinderGeometry(.03, .03, .12, 10), M.marco, x, N.terreno + .06, z); }   // 8
   caja(7.10, -10.85, 7.16, -10.6, N.pa + 1.75, N.pa + 2.05, M.marco); disco(7.17, N.pa + 1.9, -10.72, .05, 'x'); P(calida, 3, 5, 7.4, N.pa + 1.9, -10.72);   // 9
   // abanicos de luz sobre muro (resplandor up/down en el aplanado, sin costo de luces) y halos de piso de las estacas
@@ -513,6 +514,7 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
     abanico(x - nx * .045, y, z - nz * .045, rot); SP(calida, 12, 5, .5, x + nx * .08, y - .16, z + nz * .08, x + nx * .6, N.terreno, z + nz * .6); };
   // 12) fachada norte: apliques up/down (servicio y cochera)
   for (const x of [1.7, 7.6, 11.7]) aplique(x, N.pb + 2.3, -13.75, Math.PI, 0, -1);
+  aplique(9.7, N.pb + 2.3, -3.3, Math.PI / 2, 1, 0);                                                     // costado izquierdo (sur) del acceso principal, fachada oriente
   // 13) costados de la terraza hacia la alberca: apliques up/down en el muro poniente
   for (const z of [-10.2, -1.9]) aplique(-.1, N.pb + 2.3, z, -Math.PI / 2, -1, 0);
   // 14) torre de piedra: aplique a 2/3 de la altura, ilumina hacia arriba y hacia abajo
@@ -527,7 +529,7 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
 const DIA = {};
 function ponerNoche(on){ NOCHE = on; LUCES.visible = on;
   if (on){ Object.assign(DIA, { bg: S.background.clone(), hc: hemi.color.clone(), hg: hemi.groundColor.clone(), hi: hemi.intensity, sc: sol.color.clone(), ex: R.toneMappingExposure });
-    S.background.set('#0b1324'); S.fog.color.set('#0b1324'); hemi.color.set('#3a4f7a'); hemi.groundColor.set('#2a2418'); hemi.intensity = .7; sol.color.set('#9fb6ff'); R.toneMappingExposure = 1.15;
+    S.background.set('#0b1324'); S.fog.color.set('#0b1324'); hemi.color.set('#3a4f7a'); hemi.groundColor.set('#2e281c'); hemi.intensity = 1.05; sol.color.set('#9fb6ff'); R.toneMappingExposure = 1.15;
     M.vidrioOn.emissive.set('#ffc98a'); M.vidrioOn.emissiveIntensity = .38; M.vidrioOn.opacity = .7; M.cortina.emissive.set('#ffd2a0'); M.cortina.emissiveIntensity = .32;
     M.lampara.emissive.set('#ffdcaa'); M.lampara.emissiveIntensity = 2.2; M.agua.emissive.set('#1aa6d6'); M.agua.emissiveIntensity = .7; }
   else { S.background.copy(DIA.bg); S.fog.color.copy(DIA.bg); hemi.color.copy(DIA.hc); hemi.groundColor.copy(DIA.hg); hemi.intensity = DIA.hi; sol.color.copy(DIA.sc); R.toneMappingExposure = DIA.ex;
@@ -535,7 +537,7 @@ function ponerNoche(on){ NOCHE = on; LUCES.visible = on;
   ponerSol(+document.getElementById('h').value); }
 function ponerSol(h){ const az = (h - 12) / 12 * Math.PI * 1.05, alt = Math.max(.08, Math.sin((h - 6) / 12 * Math.PI) * 1.15);
   sol.position.set(Math.sin(az) * 60, Math.sin(alt) * 60 + 6, -Math.cos(az) * 25 + 15); sol.target.position.set(4.8, 0, -6.8);
-  sol.intensity = NOCHE ? .35 : 2.6 * Math.min(1, alt * 2); if (NOCHE) sol.position.set(-25, 45, 20); document.getElementById('ht').textContent = `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`; }
+  sol.intensity = NOCHE ? .5 : 2.6 * Math.min(1, alt * 2); if (NOCHE) sol.position.set(-25, 45, 20); document.getElementById('ht').textContent = `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`; }
 const VIS = { 'Aérea': [[-22, 26, 24], [4.8, 3, -6.8]], 'Fachada sur (calle)': [[4.8, 4.5, 22], [4.8, 4.2, -6.8]], 'Fachada oriente (acceso)': [[32, 5, -6.8], [6.5, 4.2, -6.8]],
   'Fachada poniente (alberca)': [[-24, 5, -6.8], [2, 4.2, -6.8]], 'Fachada norte': [[4.8, 5, -36], [4.8, 4.2, -6.8]], 'Esquina sureste': [[24, 7, 16], [5, 4, -6]], 'Esquina suroeste': [[-18, 7, 14], [3, 4, -6]] };
 const bar = document.getElementById('bar'); let tw = null;
