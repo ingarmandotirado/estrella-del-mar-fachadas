@@ -39,7 +39,13 @@ const D = {"niv": {"terreno": 0.45, "pb": 0.65, "pa": 3.95, "az": 7.15, "pretil"
 // ventanas de esquina sureste (niveles 1 y 2): la del muro sur de PB (1.05 m) da la medida y continúa igual en el muro oriente
 for (const k of ['pb', 'pa']){ D[k].vidrios = D[k].vidrios.filter(([a, b]) => !(Math.max(a[0], b[0]) > (k === 'pa' ? 7.4 : 8.2) && Math.max(a[1], b[1]) > -2.3));   // en PA también sale el vano tipo puerta junto a la esquina
   D[k].vidrios.push([[8.05, -.07], [9.60, -.07]], [[9.53, -1.05], [9.53, 0]]); }
-D.pa.vidrios.push([[9.53, -6.29], [9.53, -4.69]]);                                                                     // ventanal alto del nivel 2 sobre la puerta principal
+D.pa.vidrios.push([[9.53, -6.29], [9.53, -4.69]]);
+// azotea: los muros de los pasillos de servicio se recortan donde ahora va la teja (NO: x < 3.50, atravesaban el faldón; SE: x > 6.10)
+D.az.muros = D.az.muros.flatMap(([a, b]) => { const hz = Math.abs(a[1] - b[1]) < .02, z = a[1], u = Math.min(a[0], b[0]), w = Math.max(a[0], b[0]);
+  if (hz && z < -12.2 && z > -12.6){ const x0 = Math.max(u, 3.5); return w - x0 > .1 ? [[[x0, z], [w, z]]] : []; }
+  if (hz && z < -1.0 && z > -1.4){ const x1 = Math.min(w, 6.1); return x1 - u > .1 ? [[[u, z], [x1, z]]] : []; }
+  if (!hz && Math.abs(a[0] - 8.45) < .02 && Math.max(a[1], b[1]) > -1.4) return [];
+  return [[a, b]]; });                                                                     // ventanal alto del nivel 2 sobre la puerta principal
 const MOVIL = /iPhone|iPad|Android/i.test(navigator.userAgent);
 const cv = document.getElementById('c');
 const R = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
@@ -151,7 +157,7 @@ for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0],
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
-const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]]] };   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
+const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]]], az: [[[5.0, -1.215], [5.9, -1.215]]] };   // + acceso al pasillo de servicio sur de la azotea (su entrada original quedó bajo la teja suroriente)   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
 const CB = [99, 99, -99, -99];   // extensión real de los muros del cubo de escalera (para su losa)
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
@@ -305,8 +311,8 @@ sillon(-1.45, N.pa, -7.35, 0); sillon(-1.45, N.pa, -4.75, Math.PI);             
 // balcón oriente de PA: dos sillones con mesita
 sillon(8.25, N.pa, -12.2, 0); sillon(8.25, N.pa, -9.8, Math.PI); mesa(8.25, N.pa, -11.0, .3);   // sillones viendo hacia la mesita
 // azotea bajo la pérgola: comedor redondo, dos sillones y sofá; macetas en el roof garden
-comedor(3.5, N.az, -8.45); sillon(2.2, N.az, -6.95, Math.PI / 2); sillon(4.85, N.az, -6.95, -Math.PI / 2); sofa(3.55, N.az, -5.95, Math.PI, 1.9);
-for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [5.8, -1.6]]) maceta(x, N.az, z);
+comedor(3.5, N.az, -7.84); sillon(2.2, N.az, -6.34, Math.PI / 2); sillon(4.85, N.az, -6.34, -Math.PI / 2); sofa(3.52, N.az, -5.34, Math.PI, 1.9);
+for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [3.9, -1.7]]) maceta(x, N.az, z);
 // grill encendido en la barra poniente: brasas y humo animado
 { const xg = -.31, zg = -13.25, yg = N.pb + 1.07;
   const brasa = new THREE.Mesh(new THREE.BoxGeometry(.4, .02, .6), new THREE.MeshStandardMaterial({ color: '#2a1408', emissive: '#ff5a1a', emissiveIntensity: 1.6 })); brasa.position.set(xg, yg - .03, zg); G.add(brasa);
@@ -318,7 +324,7 @@ for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [5.
       b.scale.setScalar(sz); b.material.opacity = .38 * (1 - f) * Math.min(1, f * 6); }
     luz.intensity = 2.2 + Math.sin(t * 13) * .4 + Math.sin(t * 7.3) * .3; brasa.material.emissiveIntensity = 1.4 + Math.sin(t * 9) * .3; }); }
 // pérgola de la azotea (área cubierta 4.00 × 4.00 del plano: x 1.56–5.54, z −9.43 a −5.43; postes a 3.60), 2 vigas laterales y duelas
-{ const [x0, z0, x1, z1] = [1.56, -9.43, 5.54, -5.43], px = [1.76, 5.34], pz = [-9.23, -5.63], yv = N.az + 2.45;
+{ const [x0, z0, x1, z1] = [1.53, -8.82, 5.51, -4.82], px = [1.73, 5.31], pz = [-8.62, -5.02], yv = N.az + 2.45;   // centrada en el espacio libre (x 0.09–6.96, z −1.29 a −12.34)
   for (const x of px) for (const z of pz) caja(x - .1, z - .1, x + .1, z + .1, N.az, yv, M.filo);
   for (const z of pz) caja(x0 - .15, z - .08, x1 + .15, z + .08, yv, yv + .25, M.madera);                               // vigas de madera a los costados
   for (let i = 0; i <= 13; i++){ const x = x0 + i * (x1 - x0) / 13; caja(x - .035, z0 - .2, x + .035, z1 + .2, yv + .25, yv + .38, M.madera); } }
