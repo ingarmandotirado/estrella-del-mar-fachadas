@@ -314,11 +314,11 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   const yA = N.pb + (y1 - N.pb) * 2 / 3; caja(xg + .07, (za + zb) / 2 - .06, xg + .19, (za + zb) / 2 + .06, yA - .22, yA + .22, M.marco); }   // aplique up/down a 2/3 de la altura de la torre
 // detalle opcional en la fachada sur de la planta alta: panel de la misma piedra de la escalera enmarcado con moldura como las ventanas
 const DET = new THREE.Group(); S.add(DET);
-{ const x0 = .6, x1 = 7.4, y0 = N.pa + .9, y1 = N.pa + 2.4, zf = .035, f = .12, pr = .09;
+{ const x1 = 7.4, zt = -2.43, y0 = N.pa + .9, y1 = N.pa + 2.4, zf = .035, xf = -.035, f = .12, pr = .09;   // da vuelta en la esquina surponiente hasta donde inicia la terraza de la alberca
   const cj = (a, b, c, d, e, g, m) => { const me = caja(a, b, c, d, e, g, m); G.remove(me); DET.add(me); };
-  cj(x0, zf - .01, x1, zf + .04, y0, y1, M.piedra);                                                         // piedra laja
-  cj(x0 - f, zf - .01, x1 + f, zf + pr, y1, y1 + .14, M.filo); cj(x0 - f, zf - .01, x1 + f, zf + pr, y0 - .1, y0, M.filo);   // moldura superior e inferior
-  cj(x0 - f, zf - .01, x0, zf + pr, y0, y1, M.filo); cj(x1, zf - .01, x1 + f, zf + pr, y0, y1, M.filo); }                     // jambas
+  cj(xf - .04, zf - .01, x1, zf + .04, y0, y1, M.piedra); cj(xf - .04, zt, xf + .01, zf + .04, y0, y1, M.piedra);                        // piedra laja (sur y poniente)
+  for (const [ya, yb] of [[y1, y1 + .14], [y0 - .1, y0]]){ cj(xf - pr, zf - .01, x1 + f, zf + pr, ya, yb, M.filo); cj(xf - pr, zt - f, xf + .01, zf + pr, ya, yb, M.filo); }   // moldura superior e inferior corrida en la esquina
+  cj(x1, zf - .01, x1 + f, zf + pr, y0, y1, M.filo); cj(xf - pr, zt - f, xf + .01, zt, y0, y1, M.filo); }                                 // jambas en los extremos
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
