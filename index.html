@@ -323,14 +323,21 @@ const DET = new THREE.Group(), DET2 = new THREE.Group(), PANO = new THREE.Group(
   const en = (g, ...a) => { const me = caja(...a); G.remove(me); g.add(me); };
   caja(-.035, -.15, 7.4, .035, N.pa, y0, M.muro); caja(-.035, -2.43, .15, 0, N.pa, y0, M.muro);                // muro bajo la franja
   caja(-.035, -.15, 7.4, .035, y1, yt, M.muro); caja(-.035, -2.43, .15, 0, y1, yt, M.muro);                    // muro sobre la franja
-  en(PANO, -.035, -.15, 7.4, .035, y0, y1, M.muro); en(PANO, -.035, -2.43, .15, 0, y0, y1, M.muro);           // franja al paño (sin detalle o con detalle 1)
+  en(PANO, -.035, -.15, 4.6, .035, y0, y1, M.muro); en(PANO, 5.5, -.15, 7.4, .035, y0, y1, M.muro); en(PANO, -.035, -2.43, .15, 0, y0, y1, M.muro);           // franja al paño (sin detalle o con detalle 1)
   M.muro2 = std('#eadccb', .95, { map: t1 });                                                                   // detalle 2: tono arena un poco más oscuro
-  en(DET2, -.035 + d, -.15, 7.4, .035 - d, y0, y1, M.muro2); en(DET2, -.035 + d, -2.43, .15, .035 - d, y0, y1, M.muro2); }   // franja remetida 6 cm, da vuelta en la esquina
+  en(DET2, -.035 + d, -.15, 4.6, .035 - d, y0, y1, M.muro2); en(DET2, 5.5, -.15, 7.4, .035 - d, y0, y1, M.muro2); en(DET2, -.035 + d, -2.43, .15, .035 - d, y0, y1, M.muro2); }   // franja remetida 6 cm, da vuelta en la esquina
 { const x1 = 7.4, zt = -2.43, y0 = N.pa + .9, y1 = N.pa + 2.4, zf = .035, xf = -.035, f = .12, pr = .09;   // da vuelta en la esquina surponiente hasta donde inicia la terraza de la alberca
   const cj = (a, b, c, d, e, g, m) => { const me = caja(a, b, c, d, e, g, m); G.remove(me); DET.add(me); };
-  cj(xf - .04, zf - .01, x1, zf + .04, y0, y1, M.piedra); cj(xf - .04, zt, xf + .01, zf + .04, y0, y1, M.piedra);                        // piedra laja (sur y poniente)
+  cj(xf - .04, zf - .01, 4.6 - .12, zf + .04, y0, y1, M.piedra); cj(5.5 + .12, zf - .01, x1, zf + .04, y0, y1, M.piedra); cj(xf - .04, zt, xf + .01, zf + .04, y0, y1, M.piedra);                        // piedra laja (sur y poniente)
   for (const [ya, yb] of [[y1, y1 + .14], [y0 - .1, y0]]){ cj(xf - pr, zf - .01, x1 + f, zf + pr, ya, yb, M.filo); cj(xf - pr, zt - f, xf + .01, zf + pr, ya, yb, M.filo); }   // moldura superior e inferior corrida en la esquina
   cj(x1, zf - .01, x1 + f, zf + pr, y0, y1, M.filo); cj(xf - pr, zt - f, xf + .01, zt, y0, y1, M.filo); }                                 // jambas en los extremos
+// ventana del baño de la recámara principal (PA, fachada sur, x 4.6–5.5): cristal esmerilado, a la altura de las demás ventanas; rompe la franja del detalle
+M.esmerilado = std('#eef2f2', .35, { transparent: true, opacity: .82, metalness: .05 });
+{ const a = 4.6, b = 5.5, y0 = N.pa + .9, y1 = N.pa + 2.4;
+  caja(a, -.075, b, -.045, y0, y1, M.esmerilado); caja(a, -.08, b, -.04, (y0 + y1) / 2 - .02, (y0 + y1) / 2 + .02, M.marco);         // cristal esmerilado con travesaño
+  for (const x of [a, b]) caja(x - .03, -.09, x + .03, -.03, y0, y1, M.marco);
+  caja(a - .12, -.2, b + .12, .125, y1, y1 + .14, M.filo); caja(a - .12, -.2, b + .12, .125, y0 - .1, y0, M.filo);                   // moldura como las demás ventanas
+  caja(a - .12, -.2, a, .125, y0, y1, M.filo); caja(b, -.2, b + .12, .125, y0, y1, M.filo); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
@@ -549,9 +556,9 @@ function ponerNoche(on){ NOCHE = on; LUCES.visible = on;
   if (on){ Object.assign(DIA, { bg: S.background.clone(), hc: hemi.color.clone(), hg: hemi.groundColor.clone(), hi: hemi.intensity, sc: sol.color.clone(), ex: R.toneMappingExposure });
     S.background.set('#0b1324'); S.fog.color.set('#0b1324'); hemi.color.set('#3a4f7a'); hemi.groundColor.set('#2e281c'); hemi.intensity = 1.05; sol.color.set('#9fb6ff'); R.toneMappingExposure = 1.15;
     M.vidrioOn.emissive.set('#ffc98a'); M.vidrioOn.emissiveIntensity = .38; M.vidrioOn.opacity = .7; M.cortina.emissive.set('#ffd2a0'); M.cortina.emissiveIntensity = .32;
-    M.lampara.emissive.set('#ffdcaa'); M.lampara.emissiveIntensity = 2.2; M.agua.emissive.set('#1aa6d6'); M.agua.emissiveIntensity = .7; }
+    M.lampara.emissive.set('#ffdcaa'); M.lampara.emissiveIntensity = 2.2; M.esmerilado.emissive.set('#ffd9a8'); M.esmerilado.emissiveIntensity = .35; M.agua.emissive.set('#1aa6d6'); M.agua.emissiveIntensity = .7; }
   else { S.background.copy(DIA.bg); S.fog.color.copy(DIA.bg); hemi.color.copy(DIA.hc); hemi.groundColor.copy(DIA.hg); hemi.intensity = DIA.hi; sol.color.copy(DIA.sc); R.toneMappingExposure = DIA.ex;
-    M.vidrioOn.emissive.set('#000000'); M.vidrioOn.opacity = .42; M.cortina.emissive.set('#000000'); M.lampara.emissive.set('#000000'); M.agua.emissive.set('#000000'); }
+    M.vidrioOn.emissive.set('#000000'); M.vidrioOn.opacity = .42; M.cortina.emissive.set('#000000'); M.lampara.emissive.set('#000000'); M.esmerilado.emissive.set('#000000'); M.agua.emissive.set('#000000'); }
   ponerSol(+document.getElementById('h').value); }
 function ponerSol(h){ const az = (h - 12) / 12 * Math.PI * 1.05, alt = Math.max(.08, Math.sin((h - 6) / 12 * Math.PI) * 1.15);
   sol.position.set(Math.sin(az) * 60, Math.sin(alt) * 60 + 6, -Math.cos(az) * 25 + 15); sol.target.position.set(4.8, 0, -6.8);
