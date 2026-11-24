@@ -142,9 +142,10 @@ const BALC_E = [6.95, -13.65, 9.60, -8.55];   // balcón oriente de la PA (preti
 const CASA = [0, -13.65, 9.60, 0], GAR = [6.95, -13.65, 13.85, -8.44], CUBO = [6.95, -8.55, 9.91, -6.31], BALC_O = [-2.97, -9.57, 0, -2.53];
 // terreno, lote y calle
 const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(p => p[0]), zs = pts.map(p => p[1]);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs); caja(x0 - 1, z0 - 1, x1 + 1, z1 + 1, 0, N.terreno, M.pasto, false);
-  caja(x0 - 1, z1 + 1, x1 + 10, z1 + 10, 0, .3, M.calle, false); caja(x0 - 1, z1 + 1, x1 + 1, z1 + 2.6, .3, .45, M.piso, false);   // calle sur; banqueta solo frente al lote (la esquina va sin banqueta)
-  caja(x1 + 1, z0 - 1, x1 + 10, z1 + 1, 0, .3, M.calle, false); }                                                       // calle oriente, sin prolongarse más allá del lote
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs); caja(x0 - 1, z0 - 1, x1, z1, 0, N.terreno, M.pasto, false);
+  M.banqueta = std('#ffffff', .9, { map: pisoTex() }); M.banqueta.color.set('#b9bab8'); M.banqueta.map.repeat.set(1 / 1.5, 1 / 1.5);   // banqueta gris de concreto
+  caja(x0 - 1, z1, x1, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false); caja(x1, z0 - 1, x1 + 1.5, z1, 0, N.terreno + .02, M.banqueta, false);   // banquetas de 1.50 tras la reja (sur y oriente; la esquina sin banqueta)
+  caja(x0 - 1, z1 + 1.5, x1 + 10, z1 + 10, 0, .3, M.calle, false); caja(x1 + 1.5, z0 - 1, x1 + 10, z1 + 1.5, 0, .3, M.calle, false); caja(x1, z1, x1 + 1.5, z1 + 1.5, 0, .3, M.calle, false); }   // calles                                                       // calle oriente, sin prolongarse más allá del lote
 const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) return;
   const me = add(uvMundo(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), 0, (y0 + y1) / 2, 0), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
@@ -167,7 +168,7 @@ for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] -
   estampadoTex.repeat.set(1 / 1.4, 1 / 1.4);
   const pts = [[13.85, -8.52]];
   for (let i = 12; i >= 0; i--){ const t = i / 12 * Math.PI / 2; pts.push([14.5 + 2.29 * Math.cos(t), -7.01 - 1.51 * Math.sin(t)]); }   // junto a la barda curva del acceso
-  pts.push([17.85, -7.01], [17.85, -15.08]);                                                                                          // hasta la calle
+  pts.push([16.85, -7.01], [16.85, -15.08]);                                                                                          // hasta el límite del lote (afuera, banqueta)                                                                                          // hasta la calle
   for (let i = 0; i <= 12; i++){ const t = i / 12 * Math.PI / 2; pts.push([14.5 + 2.21 * Math.cos(t), -15.08 + 1.43 * Math.sin(t)]); }   // curva derecha (espejo de la del acceso)
   pts.push([13.85, -13.65]);
   const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
@@ -291,7 +292,8 @@ caja(2.51, -13.685, 6.97, -13.50, N.pa - .55, N.pa - .22, M.muro);
 // puerta del baño (muro norte, x 0.15–0.90) y sombras en las áreas abiertas de bombas y lavandería
 caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.685, .90, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
 { const sombra = std('#6b6f73', .95); caja(2.51, -12.34, 4.76, -12.28, N.pb, N.pa - .22, sombra); caja(2.51, -13.5, 4.76, -12.34, N.pa - .26, N.pa - .22, sombra); }
-caja(5.86, -13.685, 6.97, -13.50, N.pb, N.pa - .22, M.muro);                                                     // a la izquierda de la puerta de servicio: muro sólido
+caja(5.86, -13.685, 6.97, -13.50, N.pb, N.pa - .22, M.muro);
+caja(6.95, -13.685, 9.6, -13.5, N.gar_alero - .25, N.pa, M.muro);                                                // muro norte continuo entre la cochera y la base de la terraza oriente (sin hueco)                                                     // a la izquierda de la puerta de servicio: muro sólido
 // cuarto de máquinas de la alberca (abierto al norte, x 2.51–4.76): bomba, filtro de arena, calentador, tablero y tuberías
 { const y = N.pb, gris = std('#8d9296', .45, { metalness: .5 }), azul = std('#2f5d8a', .4, { metalness: .3 }), pvc = std('#e8e8e4', .6), tab = std('#c9ccce', .5, { metalness: .4 });
   caja(2.6, -12.95, 4.7, -12.4, y, y + .08, std('#bdb8ae', .9));                                                  // base de concreto
