@@ -485,7 +485,7 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
 // Diseño de iluminación exterior, moderno mediterráneo (2700 K, luz baja y rasante, acentos en texturas, sin deslumbramiento):
 //  1) acceso: arbotantes en pilares   2) torre de piedra: bañadores empotrados en piso rozando la piedra   3) fachada sur: arbotantes cilíndricos up/down
 //  4) andador: bolardos bajos         5) terraza cubierta: empotrados en plafón   6) cochera: empotrados en alero   7) alberca subacuática
-//  8) jardín: estacas que bañan arbustos   9) terraza oriente: aplique de pared   10) pérgola: tira LED oculta en vigas   11) barda: luces de escalón
+//  8) jardín: estacas que bañan arbustos   9) terraza oriente: aplique de pared   10) pérgola: tira LED oculta en vigas
 { const calida = '#ffc27a', P = (c, i, d, x, y, z) => { const l = new THREE.PointLight(c, i, d, 2); l.position.set(x, y, z); LUCES.add(l); };
   const SP = (c, i, d, ang, x, y, z, tx, ty, tz) => { const l = new THREE.SpotLight(c, i, d, ang, .6, 2); l.position.set(x, y, z); l.target.position.set(tx, ty, tz); LUCES.add(l, l.target); };
   const disco = (x, y, z, r = .05, eje = 'y') => { const g = new THREE.CylinderGeometry(r, r, .015, 16); if (eje === 'z') g.rotateX(Math.PI / 2); if (eje === 'x') g.rotateZ(Math.PI / 2); add(g, M.lampara, x, y, z, false); };
@@ -502,7 +502,6 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
   if (!MOVIL) for (const [x, z] of [[2.3, 1.0], [7.3, 1.0], [12.4, -1.6], [-7.4, -.6]]){ SP('#ffe0a8', 7, 4, .65, x, N.terreno + .06, z, x, N.terreno + 1.6, z - .2); add(new THREE.CylinderGeometry(.03, .03, .12, 10), M.marco, x, N.terreno + .06, z); }   // 8
   caja(7.10, -10.85, 7.16, -10.6, N.pa + 1.75, N.pa + 2.05, M.marco); disco(7.17, N.pa + 1.9, -10.72, .05, 'x'); P(calida, 3, 5, 7.4, N.pa + 1.9, -10.72);   // 9
   for (const z of [-8.62, -5.02]) caja(1.53, z - .03, 5.51, z + .03, N.az + 2.42, N.az + 2.45, M.lampara); P(calida, 4, 7, 3.52, N.az + 2.2, -6.82);   // 10
-  for (let x = 1; x <= 13.5; x += 2.5){ const zf = 1.83 + x / 14.34 * .19 + .05; caja(x - .08, zf, x + .08, zf + .015, N.terreno + .32, N.terreno + .38, M.lampara); }                   // 11
 }
 const DIA = {};
 function ponerNoche(on){ NOCHE = on; LUCES.visible = on;
