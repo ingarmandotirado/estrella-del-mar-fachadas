@@ -398,7 +398,7 @@ for (const [x, z] of [[-8, -15], [-9, -1], [15, -3], [-10, 3.2], [15.5, 2.8], [3
         add(geoF, f, x + Math.cos(t) * r * .75 * Math.sin(u), y0 + r * .7 + r * Math.cos(u) * .95, z + Math.sin(t) * r * .75 * Math.sin(u), false); } } } }
   piedras.count = n; G.add(piedras); }
 // reja metálica opcional sobre la barda perimetral: barras verticales y solera superior, altura máxima 2.10 sobre el terreno
-const REJA = new THREE.Group(); REJA.visible = false; S.add(REJA);
+const REJA = new THREE.Group(); REJA.visible = true; S.add(REJA);   // encendida por defecto
 { const y0 = N.terreno + 1.2, y1 = N.terreno + 2.10, met = std('#2b2e31', .45, { metalness: .5 }), paso = .12;
   const tramos = RJ.filter(([p, q]) => !(Math.abs((p[0] + q[0]) / 2 - 16.71) < .4 && Math.min(p[1], q[1]) > -7.05 && Math.max(p[1], q[1]) < -3.9));   // sin reja en el portón
   let nb = 0; for (const [p, q] of tramos) nb += Math.floor(Math.hypot(q[0] - p[0], q[1] - p[1]) / paso) + 1;
@@ -408,6 +408,29 @@ const REJA = new THREE.Group(); REJA.visible = false; S.add(REJA);
     for (let i = 0; i <= k; i++){ const t = k ? i / k : .5; o.position.set(p[0] + (q[0] - p[0]) * t, (y0 + y1 - .04) / 2, p[1] + (q[1] - p[1]) * t); o.updateMatrix(); barras.setMatrixAt(n++, o.matrix); }
     for (const y of [y1 - .02, y0 + .02]){ const m = new THREE.Mesh(sol, met); m.scale.x = L + .02; m.position.set((p[0] + q[0]) / 2, y, (p[1] + q[1]) / 2); m.rotation.y = -Math.atan2(q[1] - p[1], q[0] - p[0]); m.castShadow = true; REJA.add(m); } }
   barras.count = n; REJA.add(barras); }
+// personas (escala humana, estilo sencillo): llegando por el andador, en la banqueta, alberca, asador, balcón, terraza oriente y roof
+function persona(x, y, z, rot, ropa, piel = '#c99a76', pelo = '#3b2a20', esc = 1, paso = 0){
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = rot; g.scale.setScalar(esc); G.add(g);
+  const P = (geo, c, px, py, pz, rx = 0, rz = 0) => { const me = new THREE.Mesh(geo, std(c, .8)); me.position.set(px, py, pz); me.rotation.set(rx, 0, rz); me.castShadow = true; g.add(me); return me; };
+  const pierna = new THREE.CapsuleGeometry(.068, .7, 4, 8), brazo = new THREE.CapsuleGeometry(.046, .52, 4, 8);
+  for (const s of [-1, 1]){ const a = paso * s * .28;
+    P(pierna, ropa[1], s * .09, .44, Math.sin(a) * .2, a); P(new THREE.BoxGeometry(.1, .07, .24), '#2b2b2b', s * .09, .035, .05 + Math.sin(a) * .42);
+    P(brazo, ropa[2] || ropa[0], s * .235, 1.12, -Math.sin(a) * .12, -a * .8, s * .1); P(new THREE.SphereGeometry(.05, 8, 6), piel, s * .26, .8, -Math.sin(a) * .3); }
+  P(new THREE.CapsuleGeometry(.17, .4, 4, 12), ropa[0], 0, 1.13, 0);
+  P(new THREE.CylinderGeometry(.05, .055, .1, 8), piel, 0, 1.5, 0);
+  P(new THREE.SphereGeometry(.105, 16, 12), piel, 0, 1.62, .01);
+  P(new THREE.SphereGeometry(.112, 16, 12, 0, 6.3, 0, 1.75), pelo, 0, 1.635, -.012); }
+const Ne = -Math.PI / 2, Es = Math.PI / 2;
+persona(12.6, N.terreno, -5.65, Ne, ['#f2efe8', '#2f4a6b'], '#c99a76', '#2b1d14', 1, 1);              // pareja llegando por el andador
+persona(13.15, N.terreno, -5.15, Ne, ['#c4553f', '#e8e0d0', '#c4553f'], '#b98463', '#4a2f1d', .96, -1);
+persona(2.0, .45, 3.75, Es, ['#3f6e8c', '#d9cbb0'], '#8d5f43', '#1a1210', 1, 1);                         // banqueta sur
+persona(-4.4, N.terreno, -6.1, Ne, ['#ffffff', '#1f2a36'], '#d2a27d', '#6b4a2b');                      // junto a la alberca
+persona(-4.6, N.terreno, -3.3, Ne, ['#f2c94c', '#3d7cc9'], '#c99a76', '#3b2a20', .62, .6);              // niño
+persona(-1.05, N.terreno, -13.1, Es, ['#5b6f4e', '#d8cdb8'], '#b07a55', '#222');                        // en el asador
+persona(-2.5, N.pa, -6.05, Ne, ['#e8d8f0', '#ffffff'], '#e0b896', '#8a5a33', .97);                     // balcón poniente
+persona(9.0, N.pa, -11.0, Ne, ['#2d2f33', '#8a7a62'], '#a7714f', '#111');                              // terraza oriente
+persona(2.35, N.az, -3.6, Es, ['#d77b5f', '#f3efe6', '#d77b5f'], '#d2a27d', '#3b2a20', .97);            // roof: platicando
+persona(3.25, N.az, -3.45, Ne, ['#9fb8c9', '#3b3f45'], '#8d5f43', '#1a1210');
 // alberca: inflables flotando (dona, colchoneta y pelota) con vaivén suave
 { const y = N.terreno + .05;
   const dona = add(new THREE.TorusGeometry(.42, .15, 12, 28), std('#ff7aa8', .35), -7.0, y + .06, -4.1); dona.rotation.x = -Math.PI / 2;
@@ -428,7 +451,7 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
   if (inst){ cam.position.set(...p); ctl.target.set(...t); return; } tw = { k: 0, p0: cam.position.clone(), t0: ctl.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t) }; }
 { const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
-  rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
+  rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
   const fb = document.createElement('button'); fb.className = 'rj'; fb.textContent = '⛶ Pantalla completa'; fb.title = 'Pantalla completa';
   const de = document.documentElement, esFS = () => document.fullscreenElement || document.webkitFullscreenElement;
   fb.onclick = () => { if (esFS()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); else (de.requestFullscreen || de.webkitRequestFullscreen).call(de); };
