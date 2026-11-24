@@ -311,7 +311,7 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
   caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied); caja(7.10, za - .12, 9.6, za, N.pa, N.az, pied);   // + costado hacia la terraza oriente          // costado norte (sobre la cochera y el cubo de azotea)
   caja(9.6, zb, xg + .07, zb + .12, y0 - .2, y1, pied); caja(6.93, zb, 9.6, zb + .12, N.az, y1, pied);              // costado sur (porche y cubo de azotea)
-  const ap = new THREE.Mesh(new THREE.BoxGeometry(.08, .1, .14), new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.4 })); ap.position.set(xg + .1, N.pb + 2.2, (za + zb) / 2); G.add(ap); }
+  const yA = N.pb + (y1 - N.pb) * 2 / 3; caja(xg + .07, (za + zb) / 2 - .06, xg + .19, (za + zb) / 2 + .06, yA - .22, yA + .22, M.marco); }   // aplique up/down a 2/3 de la altura de la torre
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
@@ -501,6 +501,27 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
   P('#5fd4ff', 7, 8, -7.49, N.terreno + .05, -6.03);                                                                                        // 7
   if (!MOVIL) for (const [x, z] of [[2.3, 1.0], [7.3, 1.0], [12.4, -1.6], [-7.4, -.6]]){ SP('#ffe0a8', 7, 4, .65, x, N.terreno + .06, z, x, N.terreno + 1.6, z - .2); add(new THREE.CylinderGeometry(.03, .03, .12, 10), M.marco, x, N.terreno + .06, z); }   // 8
   caja(7.10, -10.85, 7.16, -10.6, N.pa + 1.75, N.pa + 2.05, M.marco); disco(7.17, N.pa + 1.9, -10.72, .05, 'x'); P(calida, 3, 5, 7.4, N.pa + 1.9, -10.72);   // 9
+  // abanicos de luz sobre muro (resplandor up/down en el aplanado, sin costo de luces) y halos de piso de las estacas
+  const lienzoA = (w, h, f) => { const c = document.createElement('canvas'); c.width = w; c.height = h; f(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+  const texAb = lienzoA(128, 512, (x, w, h) => { for (const sg of [-1, 1]){ const g = x.createLinearGradient(0, h / 2, 0, sg < 0 ? 0 : h); g.addColorStop(0, 'rgba(255,205,140,.95)'); g.addColorStop(.6, 'rgba(255,190,120,.25)'); g.addColorStop(1, 'rgba(255,190,120,0)');
+    x.fillStyle = g; x.beginPath(); x.moveTo(w / 2 - 4, h / 2); x.lineTo(4, sg < 0 ? 0 : h); x.lineTo(w - 4, sg < 0 ? 0 : h); x.lineTo(w / 2 + 4, h / 2); x.closePath(); x.fill(); } });
+  const texHalo = lienzoA(128, 128, (x, w) => { const g = x.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); g.addColorStop(0, 'rgba(255,215,160,1)'); g.addColorStop(.35, 'rgba(255,200,140,.35)'); g.addColorStop(1, 'rgba(255,200,140,0)'); x.fillStyle = g; x.fillRect(0, 0, w, w); });
+  const matAb = new THREE.MeshBasicMaterial({ map: texAb, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: .55 });
+  const matHalo = new THREE.MeshBasicMaterial({ map: texHalo, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: .28 });
+  const abanico = (x, y, z, rot, w = 1.0, h = 2.6) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), matAb); m.position.set(x, y, z); m.rotation.y = rot; LUCES.add(m); };
+  const aplique = (x, y, z, rot, nx, nz) => { const g = new THREE.CylinderGeometry(.055, .055, .3, 16); add(g, M.marco, x, y, z); disco(x, y + .155, z, .045); disco(x, y - .155, z, .045);
+    abanico(x - nx * .045, y, z - nz * .045, rot); SP(calida, 12, 5, .5, x + nx * .08, y - .16, z + nz * .08, x + nx * .6, N.terreno, z + nz * .6); };
+  // 12) fachada norte: apliques up/down (servicio y cochera)
+  for (const x of [1.7, 7.6, 11.7]) aplique(x, N.pb + 2.3, -13.75, Math.PI, 0, -1);
+  // 13) costados de la terraza hacia la alberca: apliques up/down en el muro poniente
+  for (const z of [-10.2, -1.9]) aplique(-.1, N.pb + 2.3, z, -Math.PI / 2, -1, 0);
+  // 14) torre de piedra: aplique a 2/3 de la altura, ilumina hacia arriba y hacia abajo
+  { const yA = N.pb + (N.cubo - .2 - N.pb) * 2 / 3, zc = -7.43; disco(10.04, yA + .225, zc, .045); disco(10.04, yA - .225, zc, .045);
+    SP(calida, 30, 6, .3, 10.12, yA + .25, zc, 9.98, N.cubo, zc); SP(calida, 30, 9, .28, 10.12, yA - .25, zc, 9.98, yA - 6, zc); abanico(9.995, yA, zc, Math.PI / 2, 1.6, 6.5); }
+  // 15) estacas de piso muy tenues en los jardines (luminaria física + halo en el pasto)
+  for (const [x, z] of [[-9.9, -12.9], [-10.5, -8.2], [-10.6, -4.0], [-4.1, -12.9], [-4.3, -1.0], [.4, 1.35], [5.1, 1.35], [10.9, -.3], [15.0, -2.6], [15.3, -.4], [2.0, -15.0], [5.6, -15.0]]){
+    add(new THREE.CylinderGeometry(.018, .018, .32, 8), M.marco, x, N.terreno + .16, z); add(new THREE.CylinderGeometry(.04, .03, .07, 12), M.marco, x, N.terreno + .34, z); disco(x, N.terreno + .30, z, .03);
+    const h = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), matHalo); h.rotation.x = -Math.PI / 2; h.position.set(x, N.terreno + .015, z); LUCES.add(h); }
   for (const z of [-8.62, -5.02]) caja(1.53, z - .03, 5.51, z + .03, N.az + 2.42, N.az + 2.45, M.lampara); P(calida, 4, 7, 3.52, N.az + 2.2, -6.82);   // 10
 }
 const DIA = {};
