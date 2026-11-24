@@ -202,7 +202,7 @@ for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0],
 // muros de cada planta (líneas del plano extruidas) y cancelería
 const ALT = { pb: [N.pb, N.pa - .22], pa: [N.pa, N.az - .22], az: [N.az, N.pretil] };
 // recorta de cada muro los tramos donde el plano dibuja cancelería (el contorno exterior viene continuo sobre las ventanas)
-const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]], [[0, -.07], [7.99, -.07]], [[.075, 0], [.075, -2.43]], [[0, -13.58], [6.95, -13.58]], [[.075, -13.65], [.075, -13.16]]], az: [[[5.0, -1.215], [5.9, -1.215]]] };   // + acceso al pasillo de servicio sur de la azotea (su entrada original quedó bajo la teja suroriente)   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
+const HUECOS = { pb: [[[4.28, -.07], [5.90, -.07]], [[.15, -13.58], [.90, -13.58]]], pa: [[[7.02, -12.65], [7.02, -11.79]], [[0, -.07], [7.99, -.07]], [[0, -13.58], [4.23, -13.58]]], az: [[[5.0, -1.215], [5.9, -1.215]]] };   // + acceso al pasillo de servicio sur de la azotea (su entrada original quedó bajo la teja suroriente)   // bodega sur (louvers), puerta del baño norte, puerta al balcón oriente
 const CB = [99, 99, -99, -99];   // extensión real de los muros del cubo de escalera (para su losa)
 function recorta(a, b, vids){ const hz = Math.abs(a[0] - b[0]) >= Math.abs(a[1] - b[1]), i = hz ? 0 : 1, j = 1 - i;
   let tramos = [[Math.min(a[i], b[i]), Math.max(a[i], b[i])]];
@@ -319,17 +319,15 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
     caja(a, b, c, d, ya, yb, M.filo);
   caja(9.45, -13.715, 9.665, -8.55, yc, yd, M.filo); caja(6.92, -13.715, 9.665, -13.5, yc, yd, M.filo); }                                          // terraza oriente
 // bajorrelieves de la planta alta (remetidos 6 cm, tono arena, sin marco), al filo exterior de las molduras de ventana (N.pa+0.80 a +2.54):
-//  sur: de la esquina surponiente a la ventana de esquina (x 7.99) y vuelta al poniente hasta la terraza de la alberca (z −2.43)
-//  norte: de la esquina norponiente a la terraza oriente (x 6.95), pasando por la ventana de la recámara, y vuelta al poniente hasta la moldura de su ventana (z −13.16)
+//  sur: solo en el muro sur, de la esquina surponiente a la ventana de esquina (x 7.99)
+//  norte: de la esquina norponiente a la moldura de la ventana de la recámara (x 4.23)
 M.muro2 = std('#eadccb', .95, { map: t1 });
 { const y0 = N.pa + .8, y1 = N.pa + 2.54, yt = N.az - .22, d = .06, ys = N.pa + 1.8;
   const franja = (x0, z0, x1, z1, xr0, zr0, xr1, zr1, huecos = []) => {               // muro lleno (x0..x1, z0..z1) y cara remetida (xr0..xr1, zr0..zr1); huecos = tramos de ventana en x
     const tramos = huecos.reduce((t, [a, b]) => t.flatMap(([u, w]) => b <= u || a >= w ? [[u, w]] : [[u, a], [b, w]].filter(([p, q]) => q - p > .01)), [[x0, x1]]);
     for (const [u, w] of tramos){ caja(u, z0, w, z1, N.pa, y0, M.muro); caja(u, z0, w, z1, y1, yt, M.muro); caja(Math.max(u, xr0), zr0, Math.min(w, xr1), zr1, y0, y1, M.muro2); } };
   franja(-.035, -.15, 7.99, .035, .025, -.15, 7.99, .035 - d, [[4.6, 5.5]]);                                   // sur (la ventana del baño se arma aparte)
-  franja(-.035, -2.43, .15, 0, .025, -2.43, .15, .035 - d);                                                     // vuelta poniente sur
-  franja(-.035, -13.685, 6.95, -13.5, .025, -13.685 + d, 6.95, -13.5, [[4.23, 6.23]]);                         // norte (ventana de la recámara)
-  franja(-.035, -13.685, .15, -13.16, .025, -13.685 + d, .15, -13.16);                                          // vuelta poniente norte
+  franja(-.035, -13.685, 4.23, -13.5, .025, -13.685 + d, 4.23, -13.5);                                          // norte: de la esquina a la ventana de la recámara
   // ventana del baño de la recámara principal (sur, x 4.6–5.5): ventana alta de baño, cerramiento 2.40 alineado con las demás, antepecho 1.80; cristal esmerilado
   M.esmerilado = std('#eef2f2', .35, { transparent: true, opacity: .82, metalness: .05 });
   const a = 4.6, b = 5.5, yv = N.pa + 2.4;
