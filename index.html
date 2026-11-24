@@ -180,7 +180,9 @@ caja(CASA[0], CASA[1], CASA[2], CASA[3], N.terreno, N.pb, M.piso); caja(GAR[0], 
 caja(-2.97, -10.0, 0, -2.0, N.terreno, N.pb - .05, M.madera);                                                         // terraza cubierta PB
 caja(CASA[0], CASA[1], CASA[2], CASA[3], N.pa - .22, N.pa, M.losa); caja(BALC_O[0], BALC_O[1], BALC_O[2], BALC_O[3], N.pa - .22, N.pa, M.losa);
 caja(CASA[0], CASA[1], BALC_E[0] + .1, CASA[3], N.az - .22, N.az, M.losa); caja(BALC_E[0] + .1, BALC_E[3], CASA[2], CASA[3], N.az - .22, N.az, M.losa);   // sin losa sobre el balcón oriente (descubierto) caja(CUBO[0], CUBO[1], CUBO[2], CUBO[3], N.cubo - .2, N.cubo, M.losa);
-for (const [x, z] of [[BALC_O[0] + .1, BALC_O[1] + .1], [BALC_O[0] + .1, BALC_O[3] - .1]]) caja(x - .1, z - .1, x + .1, z + .1, N.pb, N.pa - .22, M.filo);   // postes de la terraza cubierta (el balcón poniente es descubierto)
+for (const [x, z] of [[BALC_O[0] + .1, BALC_O[1] + .1], [BALC_O[0] + .1, BALC_O[3] - .1]]) caja(x - .1, z - .1, x + .1, z + .1, N.pb, N.pa - .22, M.filo);
+{ const [a, b, c, d] = BALC_O, e = .05, y0 = N.pa - .24, y1 = N.pa + .01;                                          // canto de la losa del balcón poniente en color moldura: marco de PTR con los postes
+  caja(a - e, b - e, a, d + e, y0, y1, M.filo); caja(a - e, b - e, c, b, y0, y1, M.filo); caja(a - e, d, c, d + e, y0, y1, M.filo); }   // postes de la terraza cubierta (el balcón poniente es descubierto)
 // cantos de losa al paño del muro y del mismo aplanado: sin molduras corridas en los entrepisos (solo quedan las de ventanas y puertas)
 for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [y === N.az ? 7.05 : 9.6, -13.65]], [[9.6, 0], [9.6, y === N.az ? -8.55 : -13.65]]]) seg(p, q, y - .22, y, M.muro, .075);
 // techo del garage a cuatro aguas parcial (aleros 3.45, cumbrera 4.65)
@@ -298,6 +300,8 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   for (const z of [za, zb]) seg([9.45, z], [xg, z], y0, y1, M.muro, .15);
   const t = piedraTex(); t.repeat.set(1 / 1.6, 1 / 1.6); const pied = std('#ffffff', .9, { map: t, bumpMap: t, bumpScale: 3 });
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
+  caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied);          // costado norte (sobre la cochera y el cubo de azotea)
+  caja(9.6, zb, xg + .07, zb + .12, y0 - .2, y1, pied); caja(6.93, zb, 9.6, zb + .12, N.az, y1, pied);              // costado sur (porche y cubo de azotea)
   const ap = new THREE.Mesh(new THREE.BoxGeometry(.08, .1, .14), new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.4 })); ap.position.set(xg + .1, N.pb + 2.2, (za + zb) / 2); G.add(ap); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q] of [[[0, 0], [6.1, 0]], [[0, 0], [0, -9.67]], [[3.5, -13.65], [7.05, -13.65]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
@@ -420,17 +424,43 @@ function persona(x, y, z, rot, ropa, piel = '#c99a76', pelo = '#3b2a20', esc = 1
   P(new THREE.CylinderGeometry(.05, .055, .1, 8), piel, 0, 1.5, 0);
   P(new THREE.SphereGeometry(.105, 16, 12), piel, 0, 1.62, .01);
   P(new THREE.SphereGeometry(.112, 16, 12, 0, 6.3, 0, 1.75), pelo, 0, 1.635, -.012); }
-const Ne = -Math.PI / 2, Es = Math.PI / 2;
-persona(12.6, N.terreno, -5.65, Ne, ['#f2efe8', '#2f4a6b'], '#c99a76', '#2b1d14', 1, 1);              // pareja llegando por el andador
-persona(13.15, N.terreno, -5.15, Ne, ['#c4553f', '#e8e0d0', '#c4553f'], '#b98463', '#4a2f1d', .96, -1);
-persona(2.0, .45, 3.75, Es, ['#3f6e8c', '#d9cbb0'], '#8d5f43', '#1a1210', 1, 1);                         // banqueta sur
-persona(-4.4, N.terreno, -6.1, Ne, ['#ffffff', '#1f2a36'], '#d2a27d', '#6b4a2b');                      // junto a la alberca
-persona(-4.6, N.terreno, -3.3, Ne, ['#f2c94c', '#3d7cc9'], '#c99a76', '#3b2a20', .62, .6);              // niño
-persona(-1.05, N.terreno, -13.1, Es, ['#5b6f4e', '#d8cdb8'], '#b07a55', '#222');                        // en el asador
-persona(-2.5, N.pa, -6.05, Ne, ['#e8d8f0', '#ffffff'], '#e0b896', '#8a5a33', .97);                     // balcón poniente
-persona(9.0, N.pa, -11.0, Ne, ['#2d2f33', '#8a7a62'], '#a7714f', '#111');                              // terraza oriente
-persona(2.35, N.az, -3.6, Es, ['#d77b5f', '#f3efe6', '#d77b5f'], '#d2a27d', '#3b2a20', .97);            // roof: platicando
-persona(3.25, N.az, -3.45, Ne, ['#9fb8c9', '#3b3f45'], '#8d5f43', '#1a1210');
+const ROPA = [['#f2efe8', '#2f4a6b'], ['#c4553f', '#e8e0d0'], ['#3f6e8c', '#d9cbb0'], ['#ffffff', '#1f2a36'], ['#e8d8f0', '#ffffff'], ['#5b6f4e', '#d8cdb8'], ['#2d2f33', '#8a7a62'], ['#d77b5f', '#f3efe6'], ['#9fb8c9', '#3b3f45'], ['#f2c94c', '#3d5a80'], ['#7a4e8c', '#2b2b2b'], ['#e9e2d0', '#6b7f5e']];
+const PIEL = ['#c99a76', '#b98463', '#8d5f43', '#d2a27d', '#e0b896', '#a7714f'], PELO = ['#2b1d14', '#4a2f1d', '#1a1210', '#6b4a2b', '#8a5a33', '#111', '#b08a5a'];
+let NP = 0; const sig = () => { const i = NP++; return [ROPA[i % ROPA.length], PIEL[(i * 5 + 1) % PIEL.length], PELO[(i * 3 + 2) % PELO.length]]; };
+const lug = (x, z, rot, dx, dz) => [x + dx * Math.cos(rot) + dz * Math.sin(rot), z - dx * Math.sin(rot) + dz * Math.cos(rot)];
+function cuerpo(x, y, z, rot){ const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = rot; G.add(g);
+  const P = (geo, c, px, py, pz, rx = 0, rz = 0) => { const me = new THREE.Mesh(geo, std(c, .8)); me.position.set(px, py, pz); me.rotation.set(rx, 0, rz); me.castShadow = true; g.add(me); return me; };
+  return P; }
+// sentado en silla, sillón o sofá (hs = altura del asiento), mirando al frente del asiento
+function sentado(x, y, z, rot, hs){ const [ropa, piel, pelo] = sig(), P = cuerpo(x, y, z, rot), zb = -.06, hr = hs + .07;
+  for (const s of [-1, 1]){ P(new THREE.CapsuleGeometry(.072, .36, 4, 8), ropa[1], s * .1, hr, zb + .22, Math.PI / 2);
+    P(new THREE.CapsuleGeometry(.062, Math.max(.1, hr - .12), 4, 8), ropa[1], s * .1, hr / 2, zb + .46);
+    P(new THREE.BoxGeometry(.1, .07, .24), '#2b2b2b', s * .1, .035, zb + .53);
+    P(new THREE.CapsuleGeometry(.046, .5, 4, 8), ropa[0], s * .235, hs + .42, zb + .04, -.55, s * .08); P(new THREE.SphereGeometry(.05, 8, 6), piel, s * .22, hs + .2, zb + .2); }
+  P(new THREE.CapsuleGeometry(.17, .36, 4, 12), ropa[0], 0, hs + .4, zb - .02);
+  P(new THREE.CylinderGeometry(.05, .055, .1, 8), piel, 0, hs + .77, zb - .02);
+  P(new THREE.SphereGeometry(.105, 16, 12), piel, 0, hs + .89, zb - .01); P(new THREE.SphereGeometry(.112, 16, 12, 0, 6.3, 0, 1.75), pelo, 0, hs + .905, zb - .03); }
+// recostado en camastro (respaldo en la cabecera, -z local)
+function recostado(x, y, z, rot){ const [ropa, piel, pelo] = sig(), P = cuerpo(x, y, z, rot), rx = -.82, dir = [.68, -.73];
+  for (const s of [-1, 1]){ P(new THREE.CapsuleGeometry(.07, .78, 4, 8), ropa[1], s * .1, .44, .28, Math.PI / 2); P(new THREE.BoxGeometry(.1, .24, .07), piel, s * .1, .5, .76);
+    P(new THREE.CapsuleGeometry(.046, .5, 4, 8), piel, s * .23, .66, -.6, rx); }
+  P(new THREE.CapsuleGeometry(.16, .4, 4, 12), ropa[0], 0, .68, -.66, rx);
+  P(new THREE.SphereGeometry(.105, 16, 12), piel, 0, .68 + dir[0] * .5, -.66 + dir[1] * .5); P(new THREE.SphereGeometry(.112, 16, 12, 0, 6.3, 0, 1.75), pelo, 0, .69 + dir[0] * .52, -.69 + dir[1] * .52, rx); }
+// en la alberca: de pie en el agua, con el agua al pecho
+function nadando(x, z, rot){ const [ropa, piel, pelo] = sig(), y = N.terreno + .02 - 1.28, P = cuerpo(x, y, z, rot);
+  P(new THREE.CapsuleGeometry(.17, .4, 4, 12), piel, 0, 1.13, 0); P(new THREE.CylinderGeometry(.05, .055, .1, 8), piel, 0, 1.5, 0);
+  for (const s of [-1, 1]) P(new THREE.CapsuleGeometry(.046, .5, 4, 8), piel, s * .26, 1.18, .12, 1.1, s * .3);
+  P(new THREE.SphereGeometry(.105, 16, 12), piel, 0, 1.62, .01); P(new THREE.SphereGeometry(.112, 16, 12, 0, 6.3, 0, 1.75), pelo, 0, 1.635, -.012); }
+const comensales = (x, y, z, n) => { for (let i = 0; i < n; i++){ const a = i / n * Math.PI * 2 + Math.PI / 4; sentado(x + Math.sin(a) * .72, y, z + Math.cos(a) * .72, a + Math.PI, .48); } };
+const enSillon = (x, y, z, rot) => { const [u, w] = lug(x, z, rot, 0, -.04); sentado(u, y, w, rot, .41); };
+comensales(-1.45, N.pb - .1, -6.05, 6);                                                              // terraza cubierta: comedor de 6
+enSillon(-1.45, N.pa, -7.35, 0); enSillon(-1.45, N.pa, -4.75, Math.PI);                              // balcón poniente
+enSillon(8.25, N.pa, -12.2, 0); enSillon(8.25, N.pa, -9.8, Math.PI);                                 // terraza oriente
+comensales(3.5, N.az, -7.84, 4);                                                                     // roof: comedor de 4, sillones y sofá de 3
+enSillon(2.2, N.az, -6.34, Math.PI / 2); enSillon(4.85, N.az, -6.34, -Math.PI / 2);
+for (const dx of [-.52, 0, .52]){ const [u, w] = lug(3.52, -5.34, Math.PI, dx, -.04); sentado(u, N.az, w, Math.PI, .41); }
+recostado(-9.1, N.terreno, -11.75, 0);                                                               // camastro
+nadando(-8.0, -5.6, Math.PI * .8); nadando(-7.1, -6.5, -Math.PI * .2);                               // alberca
 // alberca: inflables flotando (dona, colchoneta y pelota) con vaivén suave
 { const y = N.terreno + .05;
   const dona = add(new THREE.TorusGeometry(.42, .15, 12, 28), std('#ff7aa8', .35), -7.0, y + .06, -4.1); dona.rotation.x = -Math.PI / 2;
