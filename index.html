@@ -331,13 +331,17 @@ const DET = new THREE.Group(), DET2 = new THREE.Group(), PANO = new THREE.Group(
   cj(xf - .04, zf - .01, 4.6 - .12, zf + .04, y0, y1, M.piedra); cj(5.5 + .12, zf - .01, x1, zf + .04, y0, y1, M.piedra); cj(xf - .04, zt, xf + .01, zf + .04, y0, y1, M.piedra);                        // piedra laja (sur y poniente)
   for (const [ya, yb] of [[y1, y1 + .14], [y0 - .1, y0]]){ cj(xf - pr, zf - .01, x1 + f, zf + pr, ya, yb, M.filo); cj(xf - pr, zt - f, xf + .01, zf + pr, ya, yb, M.filo); }   // moldura superior e inferior corrida en la esquina
   cj(x1, zf - .01, x1 + f, zf + pr, y0, y1, M.filo); cj(xf - pr, zt - f, xf + .01, zt, y0, y1, M.filo); }                                 // jambas en los extremos
-// ventana del baño de la recámara principal (PA, fachada sur, x 4.6–5.5): cristal esmerilado, a la altura de las demás ventanas; rompe la franja del detalle
+// ventana del baño de la recámara principal (PA, fachada sur, x 4.6–5.5): ventana alta de baño (antepecho 1.60, cerramiento 2.40 alineado con las demás),
+// cristal esmerilado; debajo continúa la franja del detalle (piedra con moldura en el detalle 1, bajorrelieve en el detalle 2, aplanado sin detalle)
 M.esmerilado = std('#eef2f2', .35, { transparent: true, opacity: .82, metalness: .05 });
-{ const a = 4.6, b = 5.5, y0 = N.pa + .9, y1 = N.pa + 2.4;
-  caja(a, -.075, b, -.045, y0, y1, M.esmerilado); caja(a, -.08, b, -.04, (y0 + y1) / 2 - .02, (y0 + y1) / 2 + .02, M.marco);         // cristal esmerilado con travesaño
-  for (const x of [a, b]) caja(x - .03, -.09, x + .03, -.03, y0, y1, M.marco);
-  caja(a - .12, -.2, b + .12, .125, y1, y1 + .14, M.filo); caja(a - .12, -.2, b + .12, .125, y0 - .1, y0, M.filo);                   // moldura como las demás ventanas
-  caja(a - .12, -.2, a, .125, y0, y1, M.filo); caja(b, -.2, b + .12, .125, y0, y1, M.filo); }
+{ const a = 4.6, b = 5.5, y0 = N.pa + .9, ys = N.pa + 1.6, y1 = N.pa + 2.4;
+  caja(a, -.075, b, -.045, ys, y1, M.esmerilado); for (const x of [a, b]) caja(x - .03, -.09, x + .03, -.03, ys, y1, M.marco);
+  caja(a - .12, -.2, b + .12, .125, y1, y1 + .14, M.filo); caja(a - .12, -.2, b + .12, .125, ys - .1, ys, M.filo);                    // moldura como las demás ventanas
+  caja(a - .12, -.2, a, .125, ys, y1, M.filo); caja(b, -.2, b + .12, .125, ys, y1, M.filo);
+  const en = (g, ...q) => { const me = caja(...q); G.remove(me); g.add(me); };
+  en(PANO, a, -.15, b, .035, y0, ys, M.muro);                                                                                         // bajo la ventana: al paño
+  en(DET2, a, -.15, b, -.025, y0, ys, M.muro2); en(PANO, a, -.15, b, .035, y0, y0 + .001, M.muro);                                    // bajo la ventana: remetido (detalle 2)
+  en(DET, a - .12, .025, b + .12, .075, y0, ys - .1, M.piedra); }                                                                     // bajo la ventana: piedra (detalle 1)
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
