@@ -74,6 +74,18 @@ function tejaTex(c1, c2, pr = .5){ const c = document.createElement('canvas'); c
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(.3, .3); return t; }
 { const t = tejaTex(...Object.values(TEJAS)[0]);
   M.teja = new THREE.MeshStandardMaterial({ map: t, roughness: .8, side: THREE.DoubleSide }); }
+// piedra laja beige para el muro frontal de la escalera
+function piedraTex(){ const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d'); let sd = 21; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const COL = ['#d8c6a6', '#cdb894', '#e3d4b8', '#c2aa86', '#d1bd9b', '#b9a07c', '#e8dcc4', '#c9b08c'];
+  x.fillStyle = '#8f7f68'; x.fillRect(0, 0, 512, 512);
+  for (let y = 0; y < 512;){ const h = 22 + Math.floor(rnd() * 22); let px = -Math.floor(rnd() * 40);
+    while (px < 512){ const w = 40 + Math.floor(rnd() * 90), col = COL[Math.floor(rnd() * COL.length)];
+      x.fillStyle = col; x.fillRect(px + 2, y + 2, w - 3, h - 3);
+      x.fillStyle = 'rgba(110,92,70,.18)'; x.fillRect(px + 2, y + h - 7, w - 3, 5);
+      for (let k = 0; k < 14; k++){ x.fillStyle = rnd() < .5 ? 'rgba(255,250,240,.10)' : 'rgba(90,75,55,.10)'; x.fillRect(px + 2 + rnd() * (w - 6), y + 2 + rnd() * (h - 6), 2 + rnd() * 6, 1 + rnd() * 3); }
+      px += w; }
+    y += h; }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t; }
 const G = new THREE.Group(); S.add(G);
 const add = (geo, mat, x, y, z, cast = true) => { const me = new THREE.Mesh(geo, mat); me.position.set(x, y, z); me.castShadow = cast; me.receiveShadow = true; G.add(me); return me; };
 const caja = (x0, z0, x1, z1, y0, y1, mat, cast = true) => add(new THREE.BoxGeometry(Math.max(.02, Math.abs(x1 - x0)), Math.max(.02, y1 - y0), Math.max(.02, Math.abs(z1 - z0))), mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, cast);
@@ -93,35 +105,39 @@ const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0],
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
 for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] - b[1]) < .05;
   if (hz && (Math.abs(mz + 15.47) < .1 || (mz > 1.7 && mz < 1.9))) continue;                                         // líneas interiores (andador y banqueta), no barda
-  if ((a[0] + b[0]) / 2 > 16.4 && mz < -7.0) continue;                                                                // lindero oriente frente al garage: acceso de autos abierto
+  if ((a[0] + b[0]) / 2 > 16.4 && mz < -6.0) continue;                                                                // lindero oriente frente al garage: acceso de autos abierto
   let p = a, q = b; if (hz && mz < -16) { p = [Math.min(a[0], 6.95), a[1]]; q = [Math.min(b[0], 6.95), b[1]]; }            // barda norte termina en la barda baja interior
   segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .09); if (!(hz && mz < -16)) RJ.push([p, q]); }   // la barda norte no lleva reja
 // la barda da vuelta hacia el garage en ambos lados del acceso de autos
-for (const [p, q] of [[[16.78, -7.37], [14.0, -7.37]], [[14.0, -7.37], [14.0, -8.44]]]){ segR(p, q, N.terreno, N.terreno + 1.2, M.muro, .15); RJ.push([p, q]); }
+// barda con reja a la derecha del acceso: tramo curvo desde el pilar norte del portón y remate recto contra la cochera
+{ const pts = []; for (let i = 0; i <= 12; i++){ const t = i / 12 * Math.PI / 2; pts.push([14.5 + 2.21 * Math.cos(t), -7.01 - 1.43 * Math.sin(t)]); } pts.push([13.85, -8.44]);
+  for (let i = 0; i < pts.length - 1; i++){ segR(pts[i], pts[i + 1], N.terreno, N.terreno + 1.2, M.muro, .15); RJ.push([pts[i], pts[i + 1]]); } }
 // barda baja al norte con puerta de servicio (x 6.95, del lindero norte al muro de la casa), puerta de 1.10
 segR([6.95, -15.31], [6.95, -13.65], N.terreno, N.terreno + 1.2, M.muro, .15); caja(6.85, -16.62, 7.05, -16.43, N.terreno, N.terreno + 1.5, M.muro); caja(6.85, -15.36, 7.05, -15.20, N.terreno, N.terreno + 1.5, M.muro);
 caja(6.92, -16.43, 6.98, -15.36, N.terreno + .05, N.terreno + 1.4, M.madera); for (let k = 1; k < 5; k++) caja(6.90, -16.43, 7.0, -15.36, N.terreno + .05 + k * .27, N.terreno + .08 + k * .27, M.marco);
-// acceso al lote (oriente): dos columnas altas con remate y portón doble de 1.80
-{ const xg = 16.71, za = -6.39, zb = -4.59;
-  for (const [z0, z1] of [[-6.85, za], [zb, -4.13]]){ caja(xg - .23, z0, xg + .23, z1, N.terreno, N.terreno + 3.0, M.muro); caja(xg - .3, z0 - .07, xg + .3, z1 + .07, N.terreno + 3.0, N.terreno + 3.18, M.filo);
-    caja(xg - .25, z0 - .02, xg + .25, z1 + .02, N.terreno + 1.2, N.terreno + 1.32, M.filo); }
-  const zm = (za + zb) / 2;
-  const met = std('#2b2e31', .45, { metalness: .5 }), ya = N.terreno + .05, yb = N.terreno + 2.10;      // portón de la misma herrería que la reja: barras verticales con marco
-  for (const [u, w] of [[za + .03, zm - .02], [zm + .02, zb - .03]]){
-    for (const y of [ya, yb - .04]) caja(xg - .025, u, xg + .025, w, y, y + .04, met);
-    for (const z of [u, w - .04]) caja(xg - .025, z, xg + .025, z + .04, ya, yb, met);
-    const k = Math.round((w - u - .04) / .12); for (let i = 1; i < k; i++){ const z = u + .02 + i * (w - u - .04) / k; caja(xg - .01, z - .01, xg + .01, z + .01, ya + .04, yb - .04, met); } }
-  caja(xg - .12, za, xg + .12, zb, N.terreno + 2.1, N.terreno + 2.22, M.filo); }
+// acceso principal (oriente): pilares robustos más altos que la reja, cornisa y remate piramidal del color de las molduras, arbotantes y puerta de herrería
+{ const xg = 16.71, za = -6.39, zb = -4.59, hp = N.terreno + 2.75, met = std('#2b2e31', .45, { metalness: .5 });
+  const pir = new THREE.ConeGeometry(.51, .32, 4, 1); pir.rotateY(Math.PI / 4);
+  const luz = new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.5 });
+  for (const [z0, z1] of [[za - .62, za], [zb, zb + .62]]){ const zc = (z0 + z1) / 2;
+    caja(xg - .31, z0, xg + .31, z1, N.terreno, hp, M.muro);
+    caja(xg - .36, zc - .36, xg + .36, zc + .36, hp, hp + .1, M.filo); add(pir, M.filo, xg, hp + .1 + .16, zc);
+    caja(xg + .31, zc - .06, xg + .36, zc + .06, N.terreno + 1.8, N.terreno + 2.1, M.marco);
+    const l = new THREE.Mesh(new THREE.BoxGeometry(.015, .05, .07), luz); l.position.set(xg + .365, N.terreno + 1.95, zc); G.add(l); }
+  const ya = N.terreno + .05, yb = N.terreno + 2.10, u = za + .03, w = zb - .03;
+  for (const y of [ya, yb - .05]) caja(xg - .025, u, xg + .025, w, y, y + .05, met);
+  for (const z of [u, w - .05]) caja(xg - .025, z, xg + .025, z + .05, ya, yb, met);
+  const k = Math.round((w - u - .05) / .11); for (let i = 1; i < k; i++){ const z = u + .025 + i * (w - u - .05) / k; caja(xg - .01, z - .01, xg + .01, z + .01, ya + .05, yb - .05, met); }
+  caja(xg + .03, w - .2, xg + .06, w - .12, N.terreno + 1.0, N.terreno + 1.1, met); }
 { const [ax, az, bx, bz] = D.alberca; caja(ax, az, bx, bz, N.terreno - .3, N.terreno + .02, M.agua, false); for (const [p, q] of [[[ax, az], [bx, az]], [[ax, bz], [bx, bz]], [[ax, az], [ax, bz]], [[bx, az], [bx, bz]]]) seg(p, q, N.terreno, N.terreno + .06, M.piso, .5); }
 // losas
 caja(CASA[0], CASA[1], CASA[2], CASA[3], N.terreno, N.pb, M.piso); caja(GAR[0], GAR[1], GAR[2], GAR[3], N.terreno, N.pb, M.piso);
 caja(-2.97, -10.0, 0, -2.0, N.terreno, N.pb - .05, M.madera);                                                         // terraza cubierta PB
-caja(CASA[0] - .25, CASA[1] - .25, CASA[2] + .25, CASA[3] + .25, N.pa - .22, N.pa, M.losa); caja(BALC_O[0], BALC_O[1], BALC_O[2], BALC_O[3], N.pa - .22, N.pa, M.losa);
-caja(CASA[0] - .25, CASA[1] - .25, BALC_E[0] + .1, CASA[3] + .25, N.az - .22, N.az, M.losa); caja(BALC_E[0] + .1, BALC_E[3], CASA[2] + .25, CASA[3] + .25, N.az - .22, N.az, M.losa);   // sin losa sobre el balcón oriente (descubierto) caja(CUBO[0], CUBO[1], CUBO[2], CUBO[3], N.cubo - .2, N.cubo, M.losa);
+caja(CASA[0], CASA[1], CASA[2], CASA[3], N.pa - .22, N.pa, M.losa); caja(BALC_O[0], BALC_O[1], BALC_O[2], BALC_O[3], N.pa - .22, N.pa, M.losa);
+caja(CASA[0], CASA[1], BALC_E[0] + .1, CASA[3], N.az - .22, N.az, M.losa); caja(BALC_E[0] + .1, BALC_E[3], CASA[2], CASA[3], N.az - .22, N.az, M.losa);   // sin losa sobre el balcón oriente (descubierto) caja(CUBO[0], CUBO[1], CUBO[2], CUBO[3], N.cubo - .2, N.cubo, M.losa);
 for (const [x, z] of [[BALC_O[0] + .1, BALC_O[1] + .1], [BALC_O[0] + .1, BALC_O[3] - .1]]) caja(x - .1, z - .1, x + .1, z + .1, N.pb, N.pa - .22, M.filo);   // postes de la terraza cubierta (el balcón poniente es descubierto)
-// filos de losa oscuros
-for (const y of [N.pa, N.az]) for (const r of [CASA]) { const e = .06, o = .25; caja(r[0] - o - e, r[1] - o - e, y === N.az ? BALC_E[0] + .1 : r[2] + o + e, r[1] - o, y - .22, y, M.filo); caja(r[0] - o - e, r[3] + o, r[2] + o + e, r[3] + o + e, y - .22, y, M.filo);
-  caja(r[0] - o - e, r[1] - o, r[0] - o, r[3] + o, y - .22, y, M.filo); caja(r[2] + o, y === N.az ? BALC_E[3] : r[1] - o, r[2] + o + e, r[3] + o, y - .22, y, M.filo); }
+// cantos de losa al paño del muro y del mismo aplanado: sin molduras corridas en los entrepisos (solo quedan las de ventanas y puertas)
+for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [y === N.az ? 7.05 : 9.6, -13.65]], [[9.6, 0], [9.6, y === N.az ? -8.55 : -13.65]]]) seg(p, q, y - .22, y, M.muro, .075);
 // techo del garage a cuatro aguas parcial (aleros 3.45, cumbrera 4.65)
 { const [x0, z0, x1, z1] = [9.51, -13.65, 13.85, -8.44], zr = -11.01, xr = 11.43, y0 = N.gar_alero, y1 = N.gar_cumbre;
   const v = [x0, y0, z0, x0, y0, z1, x1, y0, z0, x1, y0, z1, xr, y1, zr, x0, y1, zr];   // cumbrera de la casa (x0) al vértice (xr) a 4.65; aleros a 3.45 en norte, sur y oriente
@@ -201,9 +217,9 @@ caja(7.0, -12.65, 7.05, -11.79, N.pa, N.pa + 2.4, M.vidrio); caja(7.10, -12.70, 
 for (const z of [-12.65, -11.79]) caja(7.0, z - .03, 7.05, z + .03, N.pa, N.pa + 2.4, M.marco);
 caja(6.95, -12.65, 7.10, -11.79, N.pa + 2.4, N.az - .22, M.muro);
 for (const [z0, z1] of [[-13.65, -12.65], [-11.79, -9.82], [-8.97, -8.44]]) caja(6.95, z0, 7.10, z1, N.pa, N.az - .22, M.muro);   // muro macizo de la terraza entre puerta y ventana
-caja(9.6, -13.9, 9.85, -8.55, N.pa, N.balc_e, M.muro); caja(6.95, -13.9, 9.85, -13.65, N.pa, N.balc_e, M.muro);         // pretil al paño exterior (llega a la fachada)
-caja(9.56, -13.94, 9.89, -8.55, N.balc_e, N.balc_e + .1, M.filo); caja(6.95, -13.94, 9.89, -13.61, N.balc_e, N.balc_e + .1, M.filo);
-caja(6.85, -13.94, 7.18, -8.55, N.az - .24, N.az + .01, M.filo);                                                                // filo de losa corrido sobre el muro del balcón
+caja(9.48, -13.685, 9.635, -8.55, N.pa, N.balc_e, M.muro); caja(6.95, -13.685, 9.635, -13.53, N.pa, N.balc_e, M.muro);         // pretil al paño exterior (llega a la fachada)
+
+caja(6.95, -13.685, 7.10, -8.55, N.az - .22, N.az, M.muro);                                                                // filo de losa corrido sobre el muro del balcón
 // cubo de escalera cerrado y techado: muro norte (hacia el balcón) hasta la losa de 11.8
 seg([6.95, -8.55], [9.93, -8.55], N.az, N.cubo - .2, M.muro, .15);
 // cubo de escalera en la azotea: muros lisos y puerta de salida (poniente)
@@ -217,7 +233,7 @@ if (CB[0] < 90){ const [a0, b0, a1, b1] = [CB[0] - .1, CB[1] - .1, Math.max(CB[2
   caja(a0, b0, a1, b1, N.cubo - .22, N.cubo, M.losa);
   caja(a0 - e, b0 - e, a1 + e, b0, N.cubo - .22, N.cubo, M.filo); caja(a0 - e, b1, a1 + e, b1 + e, N.cubo - .22, N.cubo, M.filo);
   caja(a0 - e, b0, a0, b1, N.cubo - .22, N.cubo, M.filo); caja(a1, b0, a1 + e, b1, N.cubo - .22, N.cubo, M.filo); }
-caja(6.85, -8.66, 9.97, -8.55, N.az - .22, N.az, M.filo);                                                                  // filo de losa de azotea a lo largo de la cara norte del cubo
+caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                                                                  // filo de losa de azotea a lo largo de la cara norte del cubo
 // marco de la puerta del garage (oriente): pilastras a los lados y trabe encima, salientes 0.15
 { const x = 13.85; for (const [z0, z1] of [[-13.65, -13.25], [-8.84, -8.44]]) caja(x - .05, z0, x + .18, z1, N.pb, N.gar_alero, M.muro);
   caja(x - .05, -13.65, x + .18, -8.44, N.pb + 2.6, N.gar_alero, M.muro); caja(x + .18, -13.68, x + .22, -8.41, N.gar_alero - .14, N.gar_alero, M.filo); }
@@ -228,16 +244,29 @@ caja(6.85, -8.66, 9.97, -8.55, N.az - .22, N.az, M.filo);                       
   for (let i = 0; i < 6; i++) caja(x0 + .1, z0 + .2 + i * .11, x1 - .1, z0 + .23 + i * .11, yb + .12, yb + .14, M.filo);
   caja(x0 + .1, z1 - .75, x1 - .1, z1 - .25, yb + .02, yb + .051, std('#b9bec2', .25, { metalness: .8 }));            // tarja
   caja(x1 - .14, z1 - .52, x1 - .1, z1 - .48, yb + .05, yb + .35, std('#b9bec2', .25, { metalness: .8 })); }
-// escalera: cara oriente en cristal completo del 2o y 3er nivel, al filo exterior (x 9.91)
-{ const xg = 9.91, za = -8.55, zb = -6.31;
-  const yt = N.cubo - .2 - .70, ym = N.pb + (N.pa - N.pb) / 2;                                // ventanal desde media altura de PB (primer descanso y vuelta) hasta 0.70 bajo el remate                                                                                         // el ventanal termina 0.70 abajo del remate; encima, muro
-  seg([xg, za], [xg, zb], ym, yt, M.vidrio, .03); seg([xg, za], [xg, zb], yt, N.cubo - .2, M.muro, .15);
-  for (const z of [za, zb]) seg([9.45, z], [xg + .02, z], N.pb, N.cubo - .2, M.muro, .15);
-  seg([xg, za], [xg, zb], N.pb, ym - .1, M.muro, .15); seg([xg, za], [xg, zb], ym - .1, ym, M.filo, .2);                                                             // muro sólido bajo los cristales (planta baja)                             // muros laterales de la escalera al ras del ventanal
-  for (const z of [za, zb]) caja(xg - .05, z - .05, xg + .05, z + .05, ym, yt, M.marco);
-  for (const y of [N.pa, N.az, yt + .12]) seg([xg, za], [xg, zb], y - .12, y, M.filo, .14); }
+// escalera: muro frontal (oriente, x 9.91) forrado completo de piedra laja beige, sin cristal; remate oscuro arriba
+{ const xg = 9.91, za = -8.55, zb = -6.31, y0 = N.pb, y1 = N.cubo - .2;
+  for (const z of [za, zb]) seg([9.45, z], [xg, z], y0, y1, M.muro, .15);
+  const t = piedraTex(); t.repeat.set((zb - za + .16) / 1.3, (y1 - y0 + .2) / 1.3); const pied = std('#ffffff', .95, { map: t });
+  caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
+  const ap = new THREE.Mesh(new THREE.BoxGeometry(.08, .1, .14), new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.4 })); ap.position.set(xg + .1, N.pb + 2.2, (za + zb) / 2); G.add(ap); }
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
-for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [7.05, -13.65]], [[9.6, 0], [9.6, -6.31]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
+for (const [p, q] of [[[3.5, 0], [9.6, 0]], [[0, -2.43], [0, -9.67]], [[3.5, -13.65], [7.05, -13.65]], [[9.6, 0], [9.6, -6.31]], [[7.05, -8.55], [7.05, -13.65]]]) seg(p, q, N.az, N.pretil, M.muro, .18);
+// losas inclinadas de teja en las esquinas norponiente y surponiente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
+// y suben 1.20 m hacia adentro hasta la altura del pretil; al poniente terminan a 10 cm del balcón, al norte y al sur llegan al límite del baño principal (x 3.50)
+{ const yb = N.az, yt = N.pretil, ea = -.115, ii = 1.165, k = Math.hypot(ii - ea, yt - yb) / (ii - ea);
+  const muroD = M.muro.clone(); muroD.side = THREE.DoubleSide;
+  const plano = (P, d, n) => { const pos = [], uv = []; for (const i of [0, 1, 2, 0, 2, 3]){ const [x, y, z] = P[i]; pos.push(x, y, z); uv.push(x * d[0] + z * d[1], (x * n[0] + z * n[1]) * k); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
+    const me = new THREE.Mesh(g, M.teja); me.castShadow = me.receiveShadow = true; G.add(me); };
+  const tri = (a, b, c) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b, ...c], 3)); g.computeVertexNormals(); const me = new THREE.Mesh(g, muroD); me.castShadow = true; G.add(me); };
+  for (const sg of [1, -1]){                                      // sg = 1: esquina norponiente; sg = -1: esquina surponiente
+    const zp = sg === 1 ? -9.67 : -2.43, zE = sg === 1 ? -13.65 - .115 : .115, zI = sg === 1 ? -13.65 + 1.165 : -1.165;
+    plano([[ea, yb, zp], [ea, yb, zE], [ii, yt, zI], [ii, yt, zp]], [0, 1], [1, 0]);                       // faldón poniente
+    plano([[ea, yb, zE], [3.5, yb, zE], [3.5, yt, zI], [ii, yt, zI]], [1, 0], [0, sg]);                    // faldón norte / sur
+    tri([ea, yb, zp], [ea, yt, zp], [ii, yt, zp]); tri([3.5, yb, zE], [3.5, yt, zE], [3.5, yt, zI]);         // cierres laterales hasta el pretil
+    caja(ii, Math.min(zp, zI), ii + .16, Math.max(zp, zI), yb, yt, M.muro);                                 // pretil interior donde remata la teja
+    caja(ii, Math.min(zI, zI + sg * .16), 3.5, Math.max(zI, zI + sg * .16), yb, yt, M.muro); } }
 // entrada principal: porche remetido entre el muro de la escalera y el de la recámara (x 9.10–9.95, z −6.29 a −4.69), piso a 0.50 con escalón,
 // puerta de 1.15 + fijo en el muro x 9.02 y lámpara; el porche queda techado por la losa de la planta alta
 caja(9.10, -6.29, 9.95, -4.69, N.terreno, .50, M.piso); caja(9.95, -6.29, 10.35, -4.69, N.terreno, N.terreno + .03, M.piso);
@@ -275,7 +304,7 @@ sillon(-1.45, N.pa, -7.35, 0); sillon(-1.45, N.pa, -4.75, Math.PI);             
 sillon(8.25, N.pa, -12.2, 0); sillon(8.25, N.pa, -9.8, Math.PI); mesa(8.25, N.pa, -11.0, .3);   // sillones viendo hacia la mesita
 // azotea bajo la pérgola: comedor redondo, dos sillones y sofá; macetas en el roof garden
 comedor(3.5, N.az, -8.45); sillon(2.2, N.az, -6.95, Math.PI / 2); sillon(4.85, N.az, -6.95, -Math.PI / 2); sofa(3.55, N.az, -5.95, Math.PI, 1.9);
-for (const [x, z] of [[.6, -12.1], [.6, -10.6], [.6, -3.0], [8.6, -2.2], [5.8, -1.6]]) maceta(x, N.az, z);
+for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [1.75, -3.0], [8.6, -2.2], [5.8, -1.6]]) maceta(x, N.az, z);
 // grill encendido en la barra poniente: brasas y humo animado
 { const xg = -.31, zg = -13.25, yg = N.pb + 1.07;
   const brasa = new THREE.Mesh(new THREE.BoxGeometry(.4, .02, .6), new THREE.MeshStandardMaterial({ color: '#2a1408', emissive: '#ff5a1a', emissiveIntensity: 1.6 })); brasa.position.set(xg, yg - .03, zg); G.add(brasa);
@@ -320,7 +349,7 @@ for (const [x, z] of [[-8, -15], [-9, -1], [15, -3], [-10, 3.2], [15.5, 2.8], [3
 // reja metálica opcional sobre la barda perimetral: barras verticales y solera superior, altura máxima 2.10 sobre el terreno
 const REJA = new THREE.Group(); REJA.visible = false; S.add(REJA);
 { const y0 = N.terreno + 1.2, y1 = N.terreno + 2.10, met = std('#2b2e31', .45, { metalness: .5 }), paso = .12;
-  const tramos = RJ.filter(([p, q]) => !(Math.abs((p[0] + q[0]) / 2 - 16.71) < .4 && Math.min(p[1], q[1]) > -6.9 && Math.max(p[1], q[1]) < -4.1));   // sin reja en el portón
+  const tramos = RJ.filter(([p, q]) => !(Math.abs((p[0] + q[0]) / 2 - 16.71) < .4 && Math.min(p[1], q[1]) > -7.05 && Math.max(p[1], q[1]) < -3.9));   // sin reja en el portón
   let nb = 0; for (const [p, q] of tramos) nb += Math.floor(Math.hypot(q[0] - p[0], q[1] - p[1]) / paso) + 1;
   const barras = new THREE.InstancedMesh(new THREE.BoxGeometry(.02, y1 - y0 - .04, .02), met, nb); barras.castShadow = true; const o = new THREE.Object3D(); let n = 0;
   const sol = new THREE.BoxGeometry(1, .04, .045);
