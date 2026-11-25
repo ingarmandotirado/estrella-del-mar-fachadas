@@ -365,6 +365,7 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
   caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied); caja(7.10, za - .12, 9.6, za, N.pa, N.az, pied);   // + costado hacia la terraza oriente          // costado norte (sobre la cochera y el cubo de azotea)
   caja(9.6, zb, xg + .07, zb + .12, y0 - .2, y1, pied); caja(6.93, zb, 9.6, zb + .12, N.az, y1, pied);              // costado sur (porche y cubo de azotea)
+  caja(9.515, zb + .12, 9.685, zb + .30, N.pa - .18, N.az - .22 + .18, M.filo);   // jamba derecha (lado torre) del ventanal sobre el acceso, visible junto a la piedra
   const yA = N.pb + (y1 - N.pb) * 2 / 3; caja(xg + .07, (za + zb) / 2 - .06, xg + .19, (za + zb) / 2 + .06, yA - .22, yA + .22, M.marco); }   // aplique up/down a 2/3 de la altura de la torre
 // remate de pretiles: moldura cuadrada de 10 cm en color moldura, con 3 cm de vuelo a cada lado (acabado final en azotea, cierres de teja y terraza oriente)
 { const ya = N.pretil, yb = N.pretil + .1, yc = N.balc_e, yd = N.balc_e + .1;
@@ -460,7 +461,8 @@ for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [3.
     luz.intensity = 2.2 + Math.sin(t * 13) * .4 + Math.sin(t * 7.3) * .3; brasa.material.emissiveIntensity = 1.4 + Math.sin(t * 9) * .3; }); }
 // pérgola de la azotea (área cubierta 4.00 × 4.00 del plano: x 1.56–5.54, z −9.43 a −5.43; postes a 3.60), 2 vigas laterales y duelas
 { const [x0, z0, x1, z1] = [1.53, -8.82, 5.51, -4.82], px = [1.73, 5.31], pz = [-8.62, -5.02], yv = N.az + 2.45;   // centrada en el espacio libre (x 0.09–6.96, z −1.29 a −12.34)
-  for (const x of px) for (const z of pz) caja(x - .1, z - .1, x + .1, z + .1, N.az, yv, M.estr);
+  for (const x of px) for (const z of pz){ caja(x - .15, z - .15, x + .15, z + .15, N.az, yv, M.muro);   // columnas cuadradas de concreto 30 × 30, como las de la terraza de la alberca
+    caja(x - .19, z - .19, x + .19, z + .19, N.az, N.az + .55, M.filo); caja(x - .19, z - .19, x + .19, z + .19, yv - .12, yv, M.filo); }   // rodapié de 55 cm y capitel bajo la viga
   for (const z of pz) caja(x0 - .15, z - .08, x1 + .15, z + .08, yv, yv + .25, M.madera);                               // vigas de madera a los costados
   for (let i = 0; i <= 13; i++){ const x = x0 + i * (x1 - x0) / 13; caja(x - .035, z0 - .2, x + .035, z1 + .2, yv + .25, yv + .38, M.madera); } }
 // árboles sencillos alrededor
