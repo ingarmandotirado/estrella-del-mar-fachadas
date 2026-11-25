@@ -249,6 +249,15 @@ for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] -
   const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2);
   { const ps = g.attributes.position; for (let i = 0; i < ps.count; i++){ const t = Math.min(1, Math.max(0, (16.85 - ps.getX(i)) / 3.0)); ps.setY(i, (N.terreno + .02) + (N.pb + .005 - N.terreno - .02) * t); } ps.needsUpdate = true; g.computeVertexNormals(); }   // rampa
   const me = add(g, std('#ffffff', .85, { map: estampadoTex, side: THREE.DoubleSide }), 0, 0, 0, false); me.castShadow = false;
+  // andador de acceso (reja principal → porche), mismo concreto estampado: 1.50 m libres + cintillas laterales de 15 cm color moldura
+  // (ancho total 1.80 = claro entre pilares de la reja), juntas transversales cada 1.60 m y descanso de 1.00 × 2.60 al pie del escalón del porche, con dos macetas
+  { const mE = me.material, y0 = N.terreno, yA = N.terreno + .03, yF = N.terreno + .04, xa = 10.35, xb = 16.71, za = -6.39, zb = -4.59, c = .15;
+    caja(xa + 1.0, za + c, xb, zb - c, y0, yA, mE, false);                                                          // andador
+    caja(xa + 1.0, za, xb, za + c, y0, yF, M.filo, false); caja(xa + 1.0, zb - c, xb, zb, y0, yF, M.filo, false);   // cintillas laterales
+    for (let x = xa + 1.0 + 1.6; x < xb - .5; x += 1.6) caja(x - .05, za + c, x + .05, zb - c, y0, yA + .003, M.filo, false);   // juntas transversales
+    caja(xa, za - .40 + c, xa + 1.0 - c, zb + .40 - c, y0, yA, mE, false); caja(xa + 1.0 - c, za, xa + 1.0, zb, y0, yA, mE, false);                                          // descanso frente al porche
+    caja(xa, za - .40, xa + 1.0, za - .40 + c, y0, yF, M.filo, false); caja(xa, zb + .40 - c, xa + 1.0, zb + .40, y0, yF, M.filo, false);
+    caja(xa + 1.0 - c, za - .40, xa + 1.0, za, y0, yF, M.filo, false); caja(xa + 1.0 - c, zb, xa + 1.0, zb + .40, y0, yF, M.filo, false); }
   { const ya = N.terreno, f = x => (N.terreno + .02) + (N.pb + .005 - N.terreno - .02) * Math.min(1, Math.max(0, (16.85 - x) / 3.0));   // costado derecho de la rampa (guarnición que sigue la pendiente)
     const ld = [[13.85, -13.65]]; for (let i = 12; i >= 0; i--){ const t = i / 12 * Math.PI / 2; ld.push([14.5 + 2.21 * Math.cos(t), -15.08 + 1.43 * Math.sin(t)]); }
     for (let i = 0; i < ld.length - 1; i++){ const [a, b] = [ld[i], ld[i + 1]], ym = Math.max(f(a[0]), f(b[0])); segR(a, b, ya, ym + .02, M.piso, .08); } }
@@ -667,7 +676,7 @@ nadando(-8.0, -5.6, Math.PI * .8); nadando(-7.1, -6.5, -Math.PI * .2);          
   for (const [x, z, s] of [[C[0] - 1.25, C[1] + .75, .26], [C[0] - 1.0, C[1] + 1.05, .17], [C[0] + 1.3, C[1] + .7, .22]]){ const m = add(new THREE.DodecahedronGeometry(s, 0), roca, x, y0 + s * .45, z); m.scale.y = .6; m.rotation.y = s * 9; }
   // macetas de barro a los lados de la entrada del porche
   const barro = std('#b5653e', .85);
-  for (const z of [-6.42, -4.56]){ add(new THREE.CylinderGeometry(.24, .17, .5, 16), barro, 10.25, N.terreno + .25, z); const m = add(new THREE.IcosahedronGeometry(.26, 0), verde[0], 10.25, N.terreno + .72, z); m.scale.y = 1.25; } }
+  for (const z of [-6.5, -4.48]){ add(new THREE.CylinderGeometry(.24, .17, .5, 16), barro, 10.85, N.terreno + .28, z); const m = add(new THREE.IcosahedronGeometry(.26, 0), verde[0], 10.85, N.terreno + .75, z); m.scale.y = 1.25; } }
 // alberca: inflables flotando (dona, colchoneta y pelota) con vaivén suave
 { const y = N.terreno + .05;
   const dona = add(new THREE.TorusGeometry(.42, .15, 12, 28), std('#ff7aa8', .35), -7.0, y + .06, -4.1); dona.rotation.x = -Math.PI / 2;
@@ -690,8 +699,8 @@ let NOCHE = false; const LUCES = new THREE.Group(); LUCES.visible = false; S.add
   P(calida, 2.5, 4, 9.6, N.pb + 2.3, -5.5);
   for (const x of [3.82, 6.98]){ add(new THREE.CylinderGeometry(.055, .055, .3, 16), M.marco, x, N.pb + 2.3, .1); disco(x, N.pb + 2.45, .1, .045); disco(x, N.pb + 2.15, .1, .045);   // 3
     SP(calida, 14, 5, .38, x, N.pb + 2.46, .18, x, N.pb + 5, .12); SP(calida, 14, 5, .38, x, N.pb + 2.14, .18, x, N.terreno, .35); }
-  for (const x of [15.3, 13.7, 12.1]){ caja(x - .06, -6.27, x + .06, -6.15, N.terreno, N.terreno + .62, M.marco); caja(x - .065, -6.275, x + .065, -6.145, N.terreno + .48, N.terreno + .56, M.lampara);   // 4
-    if (!MOVIL) P(calida, 1.4, 2.6, x, N.terreno + .52, -6.0); }
+  for (const x of [15.3, 13.7, 12.1]){ caja(x - .06, -6.68, x + .06, -6.56, N.terreno, N.terreno + .62, M.marco); caja(x - .065, -6.685, x + .065, -6.555, N.terreno + .48, N.terreno + .56, M.lampara);   // 4
+    if (!MOVIL) P(calida, 1.4, 2.6, x, N.terreno + .52, -6.35); }
   for (const z of [-7.6, -4.5]){ disco(-1.45, N.pa - .226, z, .07); SP(calida, 16, 6, .7, -1.45, N.pa - .25, z, -1.45, N.pb, z); }      // 5
   for (const z of [-9.4, -12.7]){ disco(14.05, N.gar_alero - .01, z, .06); SP(calida, 30, 8, .8, 14.05, N.gar_alero - .05, z, 14.9, N.terreno, z); }   // 6
   P('#5fd4ff', 7, 8, -7.49, N.terreno + .05, -6.03);
