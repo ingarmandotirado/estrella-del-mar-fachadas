@@ -136,6 +136,11 @@ function uvMundo(g, px = 0, py = 0, pz = 0){ const p = g.attributes.position, nn
 const caja = (x0, z0, x1, z1, y0, y1, mat, cast = true) => add(uvMundo(new THREE.BoxGeometry(Math.max(.02, Math.abs(x1 - x0)), Math.max(.02, y1 - y0), Math.max(.02, Math.abs(z1 - z0))), (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), mat, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, cast);
 const seg = (a, b, y0, y1, mat, e = .07) => { const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]);
   return hz ? caja(Math.min(a[0], b[0]), a[1] - e / 2, Math.max(a[0], b[0]), a[1] + e / 2, y0, y1, mat) : caja(a[0] - e / 2, Math.min(a[1], b[1]), a[0] + e / 2, Math.max(a[1], b[1]), y0, y1, mat); };
+function marcoAl(a, b, ya, yb, cent = true, fw = .055, fd = .075){   // marco de aluminio de cancelería: cabezal, umbral, jambas y parteluz en vanos anchos
+  const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]), c = hz ? a[1] : a[0], u0 = Math.min(hz ? a[0] : a[1], hz ? b[0] : b[1]), u1 = Math.max(hz ? a[0] : a[1], hz ? b[0] : b[1]);
+  const bx = (v0, v1, y0, y1) => hz ? caja(v0, c - fd / 2, v1, c + fd / 2, y0, y1, M.herreria) : caja(c - fd / 2, v0, c + fd / 2, v1, y0, y1, M.herreria);
+  bx(u0, u1, yb - fw, yb); bx(u0, u1, ya, ya + fw); bx(u0, u0 + fw, ya, yb); bx(u1 - fw, u1, ya, yb);
+  if (cent && u1 - u0 > 1.2){ const m = (u0 + u1) / 2; bx(m - fw / 2, m + fw / 2, ya, yb); } }
 const enR = (p, r) => p[0] >= r[0] - .01 && p[0] <= r[2] + .01 && p[1] >= r[1] - .01 && p[1] <= r[3] + .01;
 // ---- volúmenes (ejes locales: x oriente, z sur; casa x 0–9.60, z −13.65–0)
 const BALC_E = [6.95, -13.65, 9.60, -8.55];   // balcón oriente de la PA (pretil a 5.15, cubierto por la losa 7.15 marcada con X en la azotea)
@@ -279,7 +284,8 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     seg(a, b, y0 + sill, y0 + head, encendida ? M.vidrioOn : M.vidrio, .03); ras(y0 + head, y1);
     if (encendida){ const cc = cV + inwV * .11; seg(hzV ? [a[0], cc] : [cc, a[1]], hzV ? [b[0], cc] : [cc, b[1]], y0 + sill + .02, y0 + head - .03, M.cortina, .01); }   // cortina traslúcida
     const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
-    for (const t of [0, 1]){ const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; if (esq(p)) continue; caja(p[0] - .03, p[1] - .03, p[0] + .03, p[1] + .03, y0 + sill, y0 + head, M.marco); }
+    { const hzF = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]), ia = hzF ? 0 : 1, lo = a[ia] <= b[ia] ? a : b, hi = a[ia] <= b[ia] ? b : a;   // marco de aluminio (en la esquina corrida no lleva jamba)
+      const pa = esq(lo) ? (hzF ? [lo[0] - .06, lo[1]] : [lo[0], lo[1] - .06]) : lo, pb = esq(hi) ? (hzF ? [hi[0] + .06, hi[1]] : [hi[0], hi[1] + .06]) : hi; marcoAl(pa, pb, y0 + sill, y0 + head); }
     if ((enR(m, [-.3, -13.95, 9.95, .3]) && !enR(m, [.3, -13.35, 9.3, -.3])) || (k === 'pa' && enR(m, [6.8, -13.6, 7.1, -8.6]))){                                           // moldura negra perimetral en ventanas de fachada
       const W = .18, P = .05, i = hzV ? 0 : 1, j = 1 - i;
       let lV = null; for (const [l, inw] of hzV ? [[0, -1], [-13.65, 1]] : [[0, 1], [9.6, -1]]) if (Math.abs(cV - l) < .25) lV = l;
@@ -320,7 +326,7 @@ caja(6.95, -13.685, 9.6, -13.5, N.gar_alero - .25, N.pa, M.muro);               
 // balcón oriente de PA: puerta del lado opuesto a la ventana (muro x 6.95, z −9.65 a −8.65), moldura negra corrida en su pretil
 // puerta de la terraza oriente en el vano del plano (muro doble x 6.95–7.10, z −12.65 a −11.79), del lado opuesto a la ventana
 caja(7.0, -12.65, 7.05, -11.79, N.pa, N.pa + 2.4, M.vidrio); caja(7.10, -12.83, 7.15, -11.61, N.pa + 2.4, N.pa + 2.58, M.filo); caja(7.10, -12.83, 7.15, -12.65, N.pa, N.pa + 2.4, M.filo); caja(7.10, -11.79, 7.15, -11.61, N.pa, N.pa + 2.4, M.filo);   // marco completo de la puerta de la terraza oriente
-for (const z of [-12.65, -11.79]) caja(7.0, z - .03, 7.05, z + .03, N.pa, N.pa + 2.4, M.marco);
+marcoAl([7.025, -12.65], [7.025, -11.79], N.pa, N.pa + 2.4, false);
 caja(6.95, -12.65, 7.10, -11.79, N.pa + 2.4, N.az - .22, M.muro);
 for (const [z0, z1] of [[-13.65, -12.65], [-11.79, -9.82], [-8.97, -8.44]]) caja(6.95, z0, 7.10, z1, N.pa, N.az - .22, M.muro);   // muro macizo de la terraza entre puerta y ventana
 caja(9.48, -13.685, 9.635, -8.55, N.pa, N.balc_e, M.muro); caja(6.95, -13.685, 9.635, -13.53, N.pa, N.balc_e, M.muro);         // pretil al paño exterior (llega a la fachada)
@@ -373,7 +379,7 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   const a = 4.6, b = 5.5;
   muro(-.035, -.15, 7.99, .035, [[a, b]], [[a, b, N.pa, ys], [a, b, y1, yt]]);                                   // muro sur
   muro(-.035, -13.685, 4.23, -13.5);                                                                            // muro norte (sin detalle)
-  caja(a, -.075, b, -.045, ys, y1, M.esmerilado); for (const x of [a, b]) caja(x - .03, -.09, x + .03, -.03, ys, y1, M.marco);
+  caja(a, -.075, b, -.045, ys, y1, M.esmerilado); marcoAl([a, -.06], [b, -.06], ys, y1, false);
   // piedra (3 cm) y moldura beige (18 × 5 cm) sobre el paño
   const zP0 = .035, zP1 = .065, zM0 = -.085, zM1 = .085;
   for (const [u, w, ya, yb] of [[-.065, a - W, y0, y1], [b + W, 7.87, y0, y1], [a - W, b + W, y0, ys - W]]) caja(u, zP0, w, zP1, ya, yb, M.piedra);
@@ -407,7 +413,7 @@ for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.
 caja(9.10, -6.29, 9.95, -4.69, N.terreno, .50, M.piso); caja(9.95, -6.29, 10.35, -4.69, N.terreno, N.terreno + .03, M.piso);
 seg([9.02, -6.29], [9.02, -5.14], N.pb, N.pb + 2.4, M.madera, .07); seg([9.02, -5.14], [9.02, -4.69], N.pb, N.pb + 2.4, M.vidrio, .03);
 seg([9.02, -6.29], [9.02, -4.69], N.pb + 2.4, N.pa - .22, M.muro, .2);
-for (const z of [-6.29, -5.14, -4.69]) caja(9.0, z - .03, 9.06, z + .03, N.pb, N.pb + 2.4, M.marco);
+marcoAl([9.03, -6.29], [9.03, -4.69], N.pb, N.pb + 2.4, false); caja(9.0, -5.17, 9.06, -5.11, N.pb, N.pb + 2.4, M.herreria);   // marco de aluminio de la puerta y el fijo
 caja(9.02, -6.47, 9.15, -4.51, N.pb + 2.4, N.pb + 2.58, M.filo);
 
 // ======================= mobiliario de amenidades (posiciones del plano) =======================
