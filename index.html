@@ -89,7 +89,7 @@ const asfaltoTex = () => lienzo(512, (x, rnd, n) => { x.fillStyle = '#4f5052'; x
 const maderaTex = () => lienzo(512, (x, rnd, n) => { x.fillStyle = '#9a6a44'; x.fillRect(0, 0, n, n);
   for (let i = 0; i < 900; i++){ const u = rnd() * n, w = .6 + rnd() * 2.5; x.fillStyle = rnd() < .5 ? `rgba(70,40,20,${.08 + rnd() * .15})` : `rgba(210,160,110,${.06 + rnd() * .1})`; x.fillRect(u, 0, w, n); }
   for (let i = 0; i < 40; i++){ const u = rnd() * n, v = rnd() * n; x.strokeStyle = 'rgba(60,35,18,.25)'; x.lineWidth = 1; x.beginPath(); x.ellipse(u, v, 3 + rnd() * 4, 10 + rnd() * 18, 0, 0, 6.3); x.stroke(); } });
-const garajeTex = () => lienzo(256, (x, rnd, n) => { x.fillStyle = '#3b3d40'; x.fillRect(0, 0, n, n);
+const garajeTex = () => lienzo(256, (x, rnd, n) => { x.fillStyle = '#ececec'; x.fillRect(0, 0, n, n);   // base clara: el color lo da la herrería
   for (let i = 0; i < 5000; i++){ x.fillStyle = `rgba(255,255,255,${rnd() * .03})`; x.fillRect(rnd() * n, rnd() * n, 2, 1); }
   for (let k = 0; k < 8; k++){ x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, k * 32, n, 2); x.fillStyle = 'rgba(255,255,255,.10)'; x.fillRect(0, k * 32 + 2, n, 1); } });
 const t1 = aplanadoTex(); t1.repeat.set(.5, .5);
@@ -99,7 +99,7 @@ const M = {
   marco: std('#2b2e31', .5, { metalness: .4 }), teja: std('#8a6a52', .8), pasto: std('#ffffff', 1, { map: pastoTex() }), garaje: std('#ffffff', .55, { map: garajeTex(), metalness: .25 }),
   piso: std('#ffffff', .9, { map: pisoTex() }), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#ffffff', .7, { map: maderaTex() }), calle: std('#ffffff', .95, { map: asfaltoTex() }),
 };
-M.herreria = std('#2b2e31', .45, { metalness: .5 }); M.barandal = M.vidrio.clone(); M.vidrioOn = M.vidrio.clone(); M.cortina = std('#f6f0e6', .9, { transparent: true, opacity: .62, side: THREE.DoubleSide, depthWrite: false }); M.lampara = std('#fff6e6', .4); M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
+M.herreria = std('#2b2e31', .45, { metalness: .5 }); M.garaje.color.copy(M.herreria.color); M.garaje.metalness = .4; M.barandal = M.vidrio.clone(); M.vidrioOn = M.vidrio.clone(); M.cortina = std('#f6f0e6', .9, { transparent: true, opacity: .62, side: THREE.DoubleSide, depthWrite: false }); M.lampara = std('#fff6e6', .4); M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
 // teja: dos tonos comerciales mezclados por pieza (rojo óxido + gris pizarra por defecto); selector en pantalla
 const TEJAS = { 'Terracota (como el render)': ['#a4462a', '#c0603a', .5], 'Rojo vino (2 tonos)': ['#6a2420', '#843526', .5], 'Rojo óxido con gris pizarra': ['#7b3326', '#565a5e', .8], 'Gris pizarra (2 tonos)': ['#474b50', '#5e6267', .5] };
 function tejaTex(c1, c2, pr = .5){ return lienzo(512, (x, rnd, n) => {
@@ -682,7 +682,7 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
   { const lh = document.createElement('span'); lh.textContent = 'Herrería'; tj.appendChild(lh);
     for (const [n, c] of [['Negro mate', '#26282a'], ['Gris Oxford', '#4b4f54'], ['Bronce', '#6b5536'], ['Café chocolate', '#45312a'], ['Verde inglés', '#2f4536'], ['Blanco', '#ffffff']]){
       const b = document.createElement('button'); b.className = 'hc'; b.title = n; b.style.background = c;
-      b.onclick = () => { M.herreria.color.set(c); const cl = M.herreria.color, lum = .2126 * cl.r + .7152 * cl.g + .0722 * cl.b; M.herreria.metalness = lum > .5 ? .05 : .5; M.herreria.roughness = lum > .5 ? .3 : .45; [...tj.querySelectorAll('.hc')].forEach(x => x.classList.toggle('on', x === b)); }; tj.appendChild(b); }
+      b.onclick = () => { M.herreria.color.set(c); const cl = M.herreria.color, lum = .2126 * cl.r + .7152 * cl.g + .0722 * cl.b; M.herreria.metalness = lum > .5 ? .05 : .5; M.herreria.roughness = lum > .5 ? .3 : .45; M.garaje.color.copy(cl); M.garaje.metalness = lum > .5 ? .05 : .4; [...tj.querySelectorAll('.hc')].forEach(x => x.classList.toggle('on', x === b)); }; tj.appendChild(b); }
     tj.querySelector('.hc').classList.add('on'); }
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
   const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
