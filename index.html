@@ -147,10 +147,19 @@ const BALC_E = [6.95, -13.65, 9.60, -8.55];   // balcón oriente de la PA (preti
 const CASA = [0, -13.65, 9.60, 0], GAR = [6.95, -13.65, 13.85, -8.44], CUBO = [6.95, -8.55, 9.91, -6.31], BALC_O = [-2.97, -9.57, 0, -2.53];
 // terreno, lote y calle
 const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(p => p[0]), zs = pts.map(p => p[1]);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs); caja(x0 - 1, z0 - 1, x1, z1, 0, N.terreno, M.pasto, false);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs), zn = z0 - 12;
   M.banqueta = std('#ffffff', .9, { map: pisoTex() }); M.banqueta.color.set('#b9bab8'); M.banqueta.map.repeat.set(1 / 1.5, 1 / 1.5);   // banqueta gris de concreto
-  caja(x0 - 1, z1, x1, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false); caja(x1, z0 - 1, x1 + 1.5, z1, 0, N.terreno + .02, M.banqueta, false);   // banquetas de 1.50 tras la reja (sur y oriente, unidas en la esquina)
-  caja(x0 - 1, z1 + 1.5, x1 + 10, z1 + 10, 0, .3, M.calle, false); caja(x1 + 1.5, z0 - 1, x1 + 10, z1 + 1.5, 0, .3, M.calle, false); caja(x1, z1, x1 + 1.5, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false); }   // calles; esquina de banqueta unida                                                       // calle oriente, sin prolongarse más allá del lote
+  // lindero poniente (inclinado, con la esquina surponiente redondeada) y lindero sur, de norte a sur y luego al oriente; se prolonga al norte por el lote vecino
+  const W = [[-10 + 1.3 * 12 / 9.25, zn], [-10, -16.62], [-11.3, -7.37], [-12.03, -2.21], [-11.85, -2], [-11.52, -1.55], [-11.2, -1.1], [-10.9, -.63], [-10.62, -.16], [-10.35, .33], [-10.22, .58],
+             [-9.98, .96], [-9.67, 1.3], [-9.31, 1.58], [-8.9, 1.78], [-8.46, 1.91], [-8, z1], [x1, z1]];
+  const desfase = (P, d) => P.map((p, k) => { const nn = []; for (const [a, b] of [[P[k - 1], p], [p, P[k + 1]]]) if (a && b){ const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz); nn.push([-dz / l, dx / l]); }
+    let nx = nn.reduce((t, n) => t + n[0], 0), nz = nn.reduce((t, n) => t + n[1], 0); const l = Math.hypot(nx, nz); nx /= l; nz /= l; const c = nx * nn[0][0] + nz * nn[0][1]; return [p[0] + nx * d / c, p[1] + nz * d / c]; });
+  const losa = (pts, ya, yb, mat) => { const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ExtrudeGeometry(sh, { depth: yb - ya, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
+    const m = add(g, mat, 0, ya, 0, false); m.castShadow = false; return m; };
+  losa([...W, [x1, zn]], 0, N.terreno, M.pasto);                                                                    // lote + pasto corrido del lote vecino al norte
+  losa([...W, ...desfase(W, 1.5).reverse()], 0, N.terreno + .02, M.banqueta);                                       // banqueta de 1.50 poniente y sur, siguiendo el lindero
+  caja(x1, zn, x1 + 1.5, z1, 0, N.terreno + .02, M.banqueta, false); caja(x1, z1, x1 + 1.5, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false);   // banqueta oriente y esquina
+  caja(x0 - 14, zn, x1 + 10, z1 + 10, 0, .3, M.calle, false); }   // calles: poniente (tras la alberca), sur y oriente
 const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) return;
   const me = add(uvMundo(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), 0, (y0 + y1) / 2, 0), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
@@ -467,7 +476,7 @@ for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [3.
   for (let i = 0; i <= 13; i++){ const x = x0 + i * (x1 - x0) / 13; caja(x - .035, z0 - .2, x + .035, z1 + .2, yv + .25, yv + .38, M.madera); } }
 // árboles sencillos alrededor
 const hoja = std('#4f7d3a', .9, { flatShading: true }), tronco = std('#6b513b', .9);
-for (const [x, z] of [[-8, -15], [-9, -1], [-10, 3.2], [15.5, 2.8], [3, -16], [11, -16]]){
+for (const [x, z] of [[-8, -15], [-9, -1], [-6.5, 2.8], [15.5, 2.8], [3, -16], [11, -16]]){
   caja(x - .07, z - .07, x + .07, z + .07, N.terreno, N.terreno + 1.1, tronco); add(new THREE.IcosahedronGeometry(.55, 0), hoja, x, N.terreno + 1.55, z); }   // árboles bajos: copa ligera, altura máxima 2.10
 // jardinería: camas de piedrita de colores con borde y vegetación baja (rompen el pasto sin quitarle protagonismo)
 { let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
