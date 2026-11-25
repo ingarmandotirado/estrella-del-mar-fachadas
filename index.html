@@ -18,7 +18,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #bar button.on{background:var(--acc);color:#fff}
 #hora{position:fixed;right:14px;top:14px;padding:8px 12px;font-size:12px;display:flex;gap:8px;align-items:center}
 #hora input{width:110px}
-#teja{position:fixed;right:14px;top:62px;padding:6px 8px;display:flex;gap:6px;align-items:center;font-size:12px}
+#teja{position:fixed;right:14px;top:62px;padding:6px 8px;display:flex;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 28px);gap:6px;align-items:center;font-size:12px}#teja button.mc{width:20px;height:20px}
 #teja button{border:0;width:26px;height:26px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 2px transparent}#teja button.on{box-shadow:0 0 0 2px var(--acc)}#teja button.rj{width:auto;border-radius:13px;padding:0 10px;background:#2b2e31;color:#fff;font-size:12px}
 #load{position:fixed;inset:0;display:grid;place-items:center;font:600 14px system-ui;background:var(--bg)}
 </style>
@@ -545,7 +545,7 @@ nadando(-8.0, -5.6, Math.PI * .8); nadando(-7.1, -6.5, -Math.PI * .2);          
 // jardín mediterráneo frente al acceso (entre el andador y la barda curva): mancha orgánica de grava clara con bordo metálico,
 // macetero circular de piedra con olivo al centro del espacio, lavandas en arco, agaves, cantos rodados y dos macetas de barro junto al porche
 { const C = [13.0, -1.75], y0 = N.terreno; let sd = 77; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-  const R = t => 1 + .1 * Math.sin(2 * t + .7) + .07 * Math.sin(3 * t + 2.1), RX = 2.65, RZ = 1.55;
+  const R = t => 1, RX = 1.85, RZ = 1.85;   // círculo de grava concéntrico al macetero
   const pt = t => [C[0] + Math.cos(t) * RX * R(t), C[1] + Math.sin(t) * RZ * R(t)];
   const grava = std('#e2d6c2', 1, { map: noiseTex('#e2d6c2', .18) }); grava.map.repeat.set(3, 3);
   const sh = new THREE.Shape(); for (let i = 0; i <= 64; i++){ const [x, z] = pt(i / 64 * Math.PI * 2); i ? sh.lineTo(x, -z) : sh.moveTo(x, -z); }
@@ -573,17 +573,17 @@ nadando(-8.0, -5.6, Math.PI * .8); nadando(-7.1, -6.5, -Math.PI * .2);          
     for (const [dx, dy, dz, rr] of [[0, 1.72, 0, .42], [.32, 1.62, .1, .3], [-.34, 1.6, -.08, .3], [.08, 1.62, -.3, .28], [-.06, 1.66, .3, .28]]){ const m = add(new THREE.IcosahedronGeometry(rr, 1), hoj, C[0] + dx, y0 + dy, C[1] + dz); m.scale.y = .7; } }
   // lavandas en arco al frente del macetero
   const lav = std('#8c6bb8', .8), lavV = std('#7f9a6a', .9, { flatShading: true });
-  for (let i = 0; i < 9; i++){ const t = Math.PI * (.15 + i * .09), x = C[0] + Math.cos(t) * 1.55, z = C[1] + Math.sin(t) * 1.0;
+  for (let i = 0; i < 12; i++){ const t = i / 12 * Math.PI * 2 + .26, x = C[0] + Math.cos(t) * 1.4, z = C[1] + Math.sin(t) * 1.4;
     const m = add(new THREE.IcosahedronGeometry(.2, 0), lavV, x, y0 + .16, z); m.scale.y = .8;
     for (let j = 0; j < 7; j++){ const a = rnd() * 6.3, q = rnd() * .15; add(new THREE.CylinderGeometry(.02, .025, .14, 5), lav, x + Math.cos(a) * q, y0 + .36 + rnd() * .06, z + Math.sin(a) * q, false); } }
   // agaves (rosetas de hojas lanceoladas)
   const ag = std('#7d9c94', .7, { flatShading: true });
-  for (const [x, z, s] of [[C[0] + 1.9, C[1] - .55, 1], [C[0] - 1.95, C[1] - .35, .85], [C[0] + 1.25, C[1] + .95, .7]]){
+  for (const [x, z, s] of [[C[0] + 1.2, C[1] - .75, .8], [C[0] - 1.25, C[1] - .7, .75], [C[0] + .05, C[1] + 1.42, .7]]){
     for (let k = 0; k < 11; k++){ const a = k / 11 * 6.283, lean = k % 2 ? .75 : .45, h = (k % 2 ? .45 : .55) * s;
       const m = add(new THREE.ConeGeometry(.045 * s, h, 4), ag, x + Math.cos(a) * .12 * s, y0 + h * .42, z + Math.sin(a) * .12 * s); m.rotation.set(Math.sin(a) * lean, 0, -Math.cos(a) * lean); } }
   // cantos rodados
   const roca = std('#cbbfae', .9, { flatShading: true });
-  for (const [x, z, s] of [[C[0] - 1.4, C[1] + .8, .32], [C[0] - 1.1, C[1] + 1.0, .2], [C[0] + 2.2, C[1] + .35, .26]]){ const m = add(new THREE.DodecahedronGeometry(s, 0), roca, x, y0 + s * .45, z); m.scale.y = .6; m.rotation.y = s * 9; }
+  for (const [x, z, s] of [[C[0] - 1.25, C[1] + .75, .26], [C[0] - 1.0, C[1] + 1.05, .17], [C[0] + 1.3, C[1] + .7, .22]]){ const m = add(new THREE.DodecahedronGeometry(s, 0), roca, x, y0 + s * .45, z); m.scale.y = .6; m.rotation.y = s * 9; }
   // macetas de barro a los lados de la entrada del porche
   const barro = std('#b5653e', .85);
   for (const z of [-6.42, -4.56]){ add(new THREE.CylinderGeometry(.24, .17, .5, 16), barro, 10.25, N.terreno + .25, z); const m = add(new THREE.IcosahedronGeometry(.26, 0), verde[0], 10.25, N.terreno + .72, z); m.scale.y = 1.25; } }
@@ -661,6 +661,12 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
   if (inst){ cam.position.set(...p); ctl.target.set(...t); return; } tw = { k: 0, p0: cam.position.clone(), t0: ctl.target.clone(), p1: new THREE.Vector3(...p), t1: new THREE.Vector3(...t) }; }
 { const tj = document.getElementById('teja');   // teja fija en rojo vino (2 tonos); solo queda el botón de la reja
   const rb = document.createElement('button'); rb.className = 'rj'; rb.textContent = 'Reja'; rb.title = 'Mostrar u ocultar la reja metálica sobre la barda (h 2.10)';
+  { const COLS = { 'Arena': '#d8c4a6', 'Blanco hueso': '#f3ece0', 'Gris piedra': '#b9b5ad', 'Gris grafito': '#5a5c5e', 'Terracota': '#b5734f', 'Café nogal': '#6e4f3a', 'Negro mate': '#2e3033' };
+    const lb = document.createElement('span'); lb.textContent = 'Moldura'; lb.style.marginRight = '2px'; tj.appendChild(lb);
+    for (const [n, c] of Object.entries(COLS)){ const b = document.createElement('button'); b.title = n; b.style.background = c; b.className = 'mc';
+      b.onclick = () => { M.filo.color.set(c); M.filo.map = c === '#d8c4a6' || c === '#f3ece0' || c === '#b9b5ad' ? t1 : null; M.filo.needsUpdate = true; [...tj.querySelectorAll('.mc')].forEach(x => x.classList.toggle('on', x === b)); };
+      tj.appendChild(b); }
+    tj.querySelector('.mc').classList.add('on'); }
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
   const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
   nb.onclick = () => { ponerNoche(!NOCHE); nb.textContent = NOCHE ? '☀ Día' : '☾ Noche'; nb.classList.toggle('on', NOCHE); }; tj.appendChild(nb);
