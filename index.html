@@ -435,6 +435,7 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   caja(xg - .07, za - .08, xg + .07, zb + .08, y0 - .2, y1, pied);
   caja(9.6, za - .12, xg + .07, za, N.gar_alero, y1, pied); caja(6.93, za - .12, 9.6, za, N.az, y1, pied); caja(7.10, za - .12, 9.6, za, N.pa, N.az, pied);   // + costado hacia la terraza oriente          // costado norte (sobre la cochera y el cubo de azotea)
   caja(9.6, zb, xg + .07, zb + .12, y0 - .2, y1, pied); caja(6.93, zb, 9.6, zb + .12, N.az, y1, pied);              // costado sur (porche y cubo de azotea)
+  { const xp = 6.95, yz = N.az; caja(xp - .03, za - .12, xp, -7.43, yz, y1, pied); caja(xp - .03, -6.22, xp, zb + .12, yz, y1, pied); caja(xp - .03, -7.43, xp, -6.22, yz + 2.28, y1, pied); }   // cuarta cara (poniente, hacia el roof), dejando la puerta con su marco
   caja(9.515, zb + .12, 9.685, zb + .30, N.pa - .18, N.az - .22 + .18, M.filo);   // jamba derecha (lado torre) del ventanal sobre el acceso, visible junto a la piedra
   const yA = N.pb + (y1 - N.pb) * 2 / 3; caja(xg + .07, (za + zb) / 2 - .06, xg + .19, (za + zb) / 2 + .06, yA - .22, yA + .22, M.marco); }   // aplique up/down a 2/3 de la altura de la torre
 // remate de pretiles: moldura cuadrada de 10 cm en color moldura, con 3 cm de vuelo a cada lado (acabado final en azotea, cierres de teja y terraza oriente)
