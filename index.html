@@ -94,7 +94,7 @@ const garajeTex = () => lienzo(256, (x, rnd, n) => { x.fillStyle = '#3b3d40'; x.
   for (let k = 0; k < 8; k++){ x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, k * 32, n, 2); x.fillStyle = 'rgba(255,255,255,.10)'; x.fillRect(0, k * 32 + 2, n, 1); } });
 const t1 = aplanadoTex(); t1.repeat.set(.5, .5);
 const M = {
-  muro: std('#ffffff', .95, { map: t1 }), losa: std('#e8dcc8', .9, { map: t1 }), filo: std('#4a4d50', .65),
+  muro: std('#ffffff', .95, { map: t1 }), losa: std('#e8dcc8', .9, { map: t1 }), filo: std('#eadccb', .9, { map: t1 }), estr: std('#4a4d50', .65),
   vidrio: new THREE.MeshStandardMaterial({ color: '#9ec3cf', roughness: .05, metalness: .2, transparent: true, opacity: .42, side: THREE.DoubleSide, depthWrite: false }),
   marco: std('#2b2e31', .5, { metalness: .4 }), teja: std('#8a6a52', .8), pasto: std('#ffffff', 1, { map: pastoTex() }), garaje: std('#ffffff', .55, { map: garajeTex(), metalness: .25 }),
   piso: std('#ffffff', .9, { map: pisoTex() }), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#ffffff', .7, { map: maderaTex() }), calle: std('#ffffff', .95, { map: asfaltoTex() }),
@@ -201,9 +201,9 @@ caja(CASA[0], CASA[1], CASA[2], CASA[3], N.terreno, N.pb, M.piso); caja(GAR[0], 
 caja(-2.97, -10.0, 0, -2.0, N.terreno, N.pb - .05, M.madera);                                                         // terraza cubierta PB
 caja(CASA[0], CASA[1], CASA[2], CASA[3], N.pa - .22, N.pa, M.losa); caja(BALC_O[0], BALC_O[1], BALC_O[2], BALC_O[3], N.pa - .22, N.pa, M.losa);
 caja(CASA[0], CASA[1], BALC_E[0] + .1, CASA[3], N.az - .22, N.az, M.losa); caja(BALC_E[0] + .1, BALC_E[3], CASA[2], CASA[3], N.az - .22, N.az, M.losa);   // sin losa sobre el balcón oriente (descubierto) caja(CUBO[0], CUBO[1], CUBO[2], CUBO[3], N.cubo - .2, N.cubo, M.losa);
-for (const [x, z] of [[BALC_O[0] + .1, BALC_O[1] + .1], [BALC_O[0] + .1, BALC_O[3] - .1]]) caja(x - .1, z - .1, x + .1, z + .1, N.pb, N.pa - .22, M.filo);
+for (const [x, z] of [[BALC_O[0] + .1, BALC_O[1] + .1], [BALC_O[0] + .1, BALC_O[3] - .1]]) caja(x - .1, z - .1, x + .1, z + .1, N.pb, N.pa - .22, M.estr);
 { const [a, b, c, d] = BALC_O, e = .05, y0 = N.pa - .24, y1 = N.pa + .01;                                          // canto de la losa del balcón poniente en color moldura: marco de PTR con los postes
-  caja(a - e, b - e, a, d + e, y0, y1, M.filo); caja(a - e, b - e, c, b, y0, y1, M.filo); caja(a - e, d, c, d + e, y0, y1, M.filo); }   // postes de la terraza cubierta (el balcón poniente es descubierto)
+  caja(a - e, b - e, a, d + e, y0, y1, M.estr); caja(a - e, b - e, c, b, y0, y1, M.estr); caja(a - e, d, c, d + e, y0, y1, M.estr); }   // postes de la terraza cubierta (el balcón poniente es descubierto)
 // cantos de losa al paño del muro y del mismo aplanado: sin molduras corridas en los entrepisos (solo quedan las de ventanas y puertas)
 for (const y of [N.pa, N.az]) for (const [p, q] of [[[0, 0], [9.6, 0]], [[0, 0], [0, -13.65]], [[0, -13.65], [y === N.az ? 7.05 : 9.6, -13.65]], [[9.6, 0], [9.6, y === N.az ? -8.55 : -13.65]]]) seg(p, q, y - .22, y, M.muro, .07);
 // techo del garage a cuatro aguas parcial (aleros 3.45, cumbrera 4.65)
@@ -276,9 +276,15 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
     for (const t of [0, 1]){ const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; if (esq(p)) continue; caja(p[0] - .03, p[1] - .03, p[0] + .03, p[1] + .03, y0 + sill, y0 + head, M.marco); }
     if ((enR(m, [-.3, -13.95, 9.95, .3]) && !enR(m, [.3, -13.35, 9.3, -.3])) || (k === 'pa' && enR(m, [6.8, -13.6, 7.1, -8.6]))){                                           // moldura negra perimetral en ventanas de fachada
-      seg(a, b, y0 + head, y0 + head + .14, M.filo, .26); if (sill) seg(a, b, y0 + sill - .1, y0 + sill, M.filo, .26);
-      const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]);
-      for (const p of [a, b]){ if (esq(p)) continue; const q = hz ? [[p[0] - .06, p[1]], [p[0] + .06, p[1]]] : [[p[0], p[1] - .06], [p[0], p[1] + .06]]; seg(q[0], q[1], y0 + (sill ? sill - .1 : 0), y0 + head + .14, M.filo, .26); } } } }
+      const W = .18, P = .05, i = hzV ? 0 : 1, j = 1 - i;
+      let lV = null; for (const [l, inw] of hzV ? [[0, -1], [-13.65, 1]] : [[0, 1], [9.6, -1]]) if (Math.abs(cV - l) < .25) lV = l;
+      const fl = lV === null ? cV : lV - inwV * .035, pr = lV === null ? [cV - .125, cV + .125] : [fl - inwV * P, fl + inwV * .12].sort((u, v) => u - v);
+      const u0 = Math.min(a[i], b[i]), u1 = Math.max(a[i], b[i]), pA = i ? [a[0], u0] : [u0, a[1]], pB = i ? [b[0], u1] : [u1, b[1]];
+      const e0 = esq(pA) ? .085 : W, e1 = esq(pB) ? .085 : W;
+      const faja = (v0, v1, ya, yb) => i === 0 ? caja(v0, pr[0], v1, pr[1], ya, yb, M.filo) : caja(pr[0], v0, pr[1], v1, ya, yb, M.filo);
+      const yb0 = y0 + (sill ? sill - W : 0);
+      faja(u0 - e0, u1 + e1, y0 + head, y0 + head + W); if (sill) faja(u0 - e0, u1 + e1, yb0, y0 + sill);
+      if (!esq(pA)) faja(u0 - W, u0, yb0, y0 + head); if (!esq(pB)) faja(u1, u1 + W, yb0, y0 + head); } } }
 // muro norte de PB: área de bombas y lavandería abiertas, puerta de servicio de 0.85 entre ambas, trabe arriba
 for (const [x0, x1] of [[4.76, 4.96], [5.81, 5.86]]) caja(x0, -13.685, x1, -13.50, N.pb, N.pa - .22, M.muro);
 caja(4.96, -13.62, 5.81, -13.56, N.pb, N.pb + 2.2, M.madera); caja(4.96, -13.685, 5.81, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
@@ -308,7 +314,7 @@ caja(6.95, -13.685, 9.6, -13.5, N.gar_alero - .25, N.pa, M.muro);               
   for (const x of [2.85, 3.15]){ add(new THREE.CylinderGeometry(.03, .03, 1.2, 10), pvc, x, y + .6, -12.38); } }
 // balcón oriente de PA: puerta del lado opuesto a la ventana (muro x 6.95, z −9.65 a −8.65), moldura negra corrida en su pretil
 // puerta de la terraza oriente en el vano del plano (muro doble x 6.95–7.10, z −12.65 a −11.79), del lado opuesto a la ventana
-caja(7.0, -12.65, 7.05, -11.79, N.pa, N.pa + 2.4, M.vidrio); caja(7.10, -12.70, 7.17, -11.74, N.pa + 2.4, N.pa + 2.54, M.filo);
+caja(7.0, -12.65, 7.05, -11.79, N.pa, N.pa + 2.4, M.vidrio); caja(7.10, -12.83, 7.15, -11.61, N.pa + 2.4, N.pa + 2.58, M.filo);
 for (const z of [-12.65, -11.79]) caja(7.0, z - .03, 7.05, z + .03, N.pa, N.pa + 2.4, M.marco);
 caja(6.95, -12.65, 7.10, -11.79, N.pa + 2.4, N.az - .22, M.muro);
 for (const [z0, z1] of [[-13.65, -12.65], [-11.79, -9.82], [-8.97, -8.44]]) caja(6.95, z0, 7.10, z1, N.pa, N.az - .22, M.muro);   // muro macizo de la terraza entre puerta y ventana
@@ -336,7 +342,7 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
 { const [x0, x1, z0, z1, yb] = [-.62, 0, -13.65, -11.25, N.pb + .9];
   caja(x0, z0, x1, z1, N.terreno, yb, M.muro); caja(x0 - .04, z0 - .02, x1, z1 + .02, yb, yb + .05, std('#3a3d40', .35, { metalness: .2 }));
   caja(x0 + .08, z0 + .15, x1 - .08, z0 + .85, yb + .05, yb + .12, M.marco);                                               // asador
-  for (let i = 0; i < 6; i++) caja(x0 + .1, z0 + .2 + i * .11, x1 - .1, z0 + .23 + i * .11, yb + .12, yb + .14, M.filo);
+  for (let i = 0; i < 6; i++) caja(x0 + .1, z0 + .2 + i * .11, x1 - .1, z0 + .23 + i * .11, yb + .12, yb + .14, M.marco);
   caja(x0 + .1, z1 - .75, x1 - .1, z1 - .25, yb + .02, yb + .051, std('#b9bec2', .25, { metalness: .8 }));            // tarja
   caja(x1 - .14, z1 - .52, x1 - .1, z1 - .48, yb + .05, yb + .35, std('#b9bec2', .25, { metalness: .8 })); }
 // escalera: muro frontal (oriente, x 9.91) forrado completo de piedra laja beige, sin cristal; remate oscuro arriba
@@ -352,24 +358,24 @@ caja(6.95, -8.62, 9.91, -8.48, N.az - .22, N.az, M.muro);                       
   for (const [a, b, c, d] of [[-.065, -.175, 6.1, .065], [-.065, -9.67, .175, .065], [3.5, -13.715, 7.13, -13.475], [6.92, -13.715, 7.13, -8.55]])   // pretil perimetral e interior (sin moldura donde hay teja)
     caja(a, b, c, d, ya, yb, M.filo);
   caja(9.45, -13.715, 9.665, -8.55, yc, yd, M.filo); caja(6.92, -13.715, 9.665, -13.5, yc, yd, M.filo); }                                          // terraza oriente
-// bajorrelieves de la planta alta (remetidos 6 cm, tono arena, sin marco), al filo exterior de las molduras de ventana (N.pa+0.80 a +2.54):
-//  sur: solo en el muro sur, de la esquina surponiente a la ventana de esquina (x 7.99)
-//  norte: de la esquina norponiente a la moldura de la ventana de la recámara (x 4.23)
-M.muro2 = std('#eadccb', .95, { map: t1 });
-{ const y0 = N.pa + .8, y1 = N.pa + 2.54, yt = N.az - .22, d = .06, ys = N.pa + 1.8;
-  const franja = (x0, z0, x1, z1, xr0, zr0, xr1, zr1, huecos = []) => {               // muro lleno (x0..x1, z0..z1) y cara remetida (xr0..xr1, zr0..zr1); huecos = tramos de ventana en x
-    const tramos = huecos.reduce((t, [a, b]) => t.flatMap(([u, w]) => b <= u || a >= w ? [[u, w]] : [[u, a], [b, w]].filter(([p, q]) => q - p > .01)), [[x0, x1]]);
-    for (const [u, w] of tramos){ caja(u, z0, w, z1, N.pa, y0, M.muro); caja(u, z0, w, z1, y1, yt, M.muro); caja(Math.max(u, xr0), zr0, Math.min(w, xr1), zr1, y0, y1, M.muro2); } };
-  franja(-.035, -.15, 7.99, .035, .025, -.15, 7.99, .035 - d, [[4.6, 5.5]]);                                   // sur (la ventana del baño se arma aparte)
-  franja(-.035, -13.685, 4.23, -13.5, .025, -13.685 + d, 4.23, -13.5);                                          // norte: de la esquina a la ventana de la recámara
-  // ventana del baño de la recámara principal (sur, x 4.6–5.5): ventana alta de baño, cerramiento 2.40 alineado con las demás, antepecho 1.80; cristal esmerilado
+// planta alta: muros al paño (se rehacen los tramos cortados por HUECOS) y detalle de piedra con moldura solo en la esquina surponiente:
+//  muro sur de la esquina a la jamba de la ventana de esquina (x 7.87) y vuelta al poniente hasta la terraza de la alberca (z −2.43), a la altura de las ventanas
+{ const y0 = N.pa + .9, y1 = N.pa + 2.4, yt = N.az - .22, ys = N.pa + 1.8, W = .18;
+  const muro = (x0, z0, x1, z1, huecos = [], hy = []) => { const tramos = huecos.reduce((t, [a, b]) => t.flatMap(([u, w]) => b <= u || a >= w ? [[u, w]] : [[u, a], [b, w]].filter(([p, q]) => q - p > .01)), [[x0, x1]]);
+    for (const [u, w] of tramos) caja(u, z0, w, z1, N.pa, yt, M.muro); for (const [a, b, ya, yb] of hy) caja(a, z0, b, z1, ya, yb, M.muro); };
+  // ventana del baño de la recámara principal (sur, x 4.6–5.5): ventana alta de baño, cerramiento 2.40, antepecho 1.80; cristal esmerilado
   M.esmerilado = std('#eef2f2', .35, { transparent: true, opacity: .82, metalness: .05 });
-  const a = 4.6, b = 5.5, yv = N.pa + 2.4;
-  caja(a, -.15, b, .035, N.pa, y0, M.muro); caja(a, -.15, b, .035, y1, yt, M.muro);                            // muro abajo y arriba de la franja
-  caja(a, -.15, b, .035 - d, y0, ys, M.muro2); caja(a, -.15, b, .035 - d, yv, y1, M.muro2);                    // bajorrelieve bajo y sobre la ventana
-  caja(a, -.075, b, -.045, ys, yv, M.esmerilado); for (const x of [a, b]) caja(x - .03, -.09, x + .03, -.03, ys, yv, M.marco);
-  caja(a - .12, -.2, b + .12, .125, yv, yv + .14, M.filo); caja(a - .12, -.2, b + .12, .125, ys - .1, ys, M.filo);
-  caja(a - .12, -.2, a, .125, ys, yv, M.filo); caja(b, -.2, b + .12, .125, ys, yv, M.filo); }
+  const a = 4.6, b = 5.5;
+  muro(-.035, -.15, 7.99, .035, [[a, b]], [[a, b, N.pa, ys], [a, b, y1, yt]]);                                   // muro sur
+  muro(-.035, -13.685, 4.23, -13.5);                                                                            // muro norte (sin detalle)
+  caja(a, -.075, b, -.045, ys, y1, M.esmerilado); for (const x of [a, b]) caja(x - .03, -.09, x + .03, -.03, ys, y1, M.marco);
+  // piedra (3 cm) y moldura beige (18 × 5 cm) sobre el paño
+  const zP0 = .035, zP1 = .065, zM0 = -.085, zM1 = .085;
+  for (const [u, w, ya, yb] of [[-.065, a - W, y0, y1], [b + W, 7.87, y0, y1], [a - W, b + W, y0, ys - W]]) caja(u, zP0, w, zP1, ya, yb, M.piedra);
+  caja(-.065, -2.25, -.035, zP1, y0, y1, M.piedra);                                                              // vuelta poniente
+  for (const [ya, yb] of [[y1, y1 + W], [y0 - W, y0]]){ caja(-.085, zM0, 7.87, zM1, ya, yb, M.filo); caja(-.085, -2.43, .085, zM1, ya, yb, M.filo); }   // bandas corridas en la esquina
+  caja(-.085, -2.43, .085, -2.25, y0, y1, M.filo);                                                               // jamba en la terraza
+  caja(a - W, zM0, b + W, zM1, ys - W, ys, M.filo); caja(a - W, zM0, a, zM1, ys, y1, M.filo); caja(b, zM0, b + W, zM1, ys, y1, M.filo); }   // ventana del baño
 // pretil continuo de la azotea a 8.40 (cotas sobre los muros del plano): sur, poniente, norte hasta el balcón oriente, oriente hasta el cubo y el muro x 7.0
 for (const [p, q, e] of [[[0, -.055], [6.1, -.055], .18], [[.055, 0], [.055, -9.67], .18], [[3.5, -13.595], [7.05, -13.595], .18], [[7.025, -8.55], [7.025, -13.65], .15]]) seg(p, q, N.az, N.pretil, M.muro, e);   // pretil al paño exterior del muro
 // losas inclinadas de teja en las esquinas norponiente y suroriente (acompañan la teja de la cochera): arrancan del filo de la losa con 8 cm de marquesina
@@ -395,7 +401,7 @@ caja(9.10, -6.29, 9.95, -4.69, N.terreno, .50, M.piso); caja(9.95, -6.29, 10.35,
 seg([9.02, -6.29], [9.02, -5.14], N.pb, N.pb + 2.4, M.madera, .07); seg([9.02, -5.14], [9.02, -4.69], N.pb, N.pb + 2.4, M.vidrio, .03);
 seg([9.02, -6.29], [9.02, -4.69], N.pb + 2.4, N.pa - .22, M.muro, .2);
 for (const z of [-6.29, -5.14, -4.69]) caja(9.0, z - .03, 9.06, z + .03, N.pb, N.pb + 2.4, M.marco);
-caja(9.07, -6.33, 9.20, -4.65, N.pb + 2.4, N.pb + 2.54, M.filo);
+caja(9.02, -6.47, 9.15, -4.51, N.pb + 2.4, N.pb + 2.58, M.filo);
 
 // ======================= mobiliario de amenidades (posiciones del plano) =======================
 const ANIM = [];
@@ -439,7 +445,7 @@ for (const [x, z] of [[1.75, -11.9], [1.75, -10.4], [.6, -3.0], [7.9, -2.4], [3.
     luz.intensity = 2.2 + Math.sin(t * 13) * .4 + Math.sin(t * 7.3) * .3; brasa.material.emissiveIntensity = 1.4 + Math.sin(t * 9) * .3; }); }
 // pérgola de la azotea (área cubierta 4.00 × 4.00 del plano: x 1.56–5.54, z −9.43 a −5.43; postes a 3.60), 2 vigas laterales y duelas
 { const [x0, z0, x1, z1] = [1.53, -8.82, 5.51, -4.82], px = [1.73, 5.31], pz = [-8.62, -5.02], yv = N.az + 2.45;   // centrada en el espacio libre (x 0.09–6.96, z −1.29 a −12.34)
-  for (const x of px) for (const z of pz) caja(x - .1, z - .1, x + .1, z + .1, N.az, yv, M.filo);
+  for (const x of px) for (const z of pz) caja(x - .1, z - .1, x + .1, z + .1, N.az, yv, M.estr);
   for (const z of pz) caja(x0 - .15, z - .08, x1 + .15, z + .08, yv, yv + .25, M.madera);                               // vigas de madera a los costados
   for (let i = 0; i <= 13; i++){ const x = x0 + i * (x1 - x0) / 13; caja(x - .035, z0 - .2, x + .035, z1 + .2, yv + .25, yv + .38, M.madera); } }
 // árboles sencillos alrededor
