@@ -18,7 +18,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #bar button.on{background:var(--acc);color:#fff}
 #hora{position:fixed;right:14px;top:14px;padding:8px 12px;font-size:12px;display:flex;gap:8px;align-items:center}
 #hora input{width:110px}
-#teja{position:fixed;right:14px;top:62px;padding:6px 8px;display:flex;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 28px);gap:6px;align-items:center;font-size:12px}#teja .mcol{display:flex;align-items:center;gap:4px}#teja button.tc{width:24px;height:24px}#teja input[type=color]{width:30px;height:24px;border:0;padding:0;background:none;cursor:pointer}
+#teja{position:fixed;right:14px;top:62px;padding:6px 8px;display:flex;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 28px);gap:6px;align-items:center;font-size:12px}#teja .mcol{display:flex;align-items:center;gap:4px}#teja button.tc{width:24px;height:24px}#teja button.hc{width:20px;height:20px}#teja input[type=color]{width:30px;height:24px;border:0;padding:0;background:none;cursor:pointer}
 #teja button{border:0;width:26px;height:26px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 2px transparent}#teja button.on{box-shadow:0 0 0 2px var(--acc)}#teja button.rj{width:auto;border-radius:13px;padding:0 10px;background:#2b2e31;color:#fff;font-size:12px}
 #load{position:fixed;inset:0;display:grid;place-items:center;font:600 14px system-ui;background:var(--bg)}
 </style>
@@ -99,7 +99,7 @@ const M = {
   marco: std('#2b2e31', .5, { metalness: .4 }), teja: std('#8a6a52', .8), pasto: std('#ffffff', 1, { map: pastoTex() }), garaje: std('#ffffff', .55, { map: garajeTex(), metalness: .25 }),
   piso: std('#ffffff', .9, { map: pisoTex() }), puerta: std('#55595d', .5, { metalness: .3 }), agua: std('#3fa6c4', .15, { metalness: .1, transparent: true, opacity: .85 }), madera: std('#ffffff', .7, { map: maderaTex() }), calle: std('#ffffff', .95, { map: asfaltoTex() }),
 };
-M.barandal = M.vidrio.clone(); M.vidrioOn = M.vidrio.clone(); M.cortina = std('#f6f0e6', .9, { transparent: true, opacity: .62, side: THREE.DoubleSide, depthWrite: false }); M.lampara = std('#fff6e6', .4); M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
+M.herreria = std('#2b2e31', .45, { metalness: .5 }); M.barandal = M.vidrio.clone(); M.vidrioOn = M.vidrio.clone(); M.cortina = std('#f6f0e6', .9, { transparent: true, opacity: .62, side: THREE.DoubleSide, depthWrite: false }); M.lampara = std('#fff6e6', .4); M.pasto.map.repeat.set(.4, .4); M.piso.map.repeat.set(1, 1); M.calle.map.repeat.set(.25, .25); M.madera.map.repeat.set(.8, .8); M.garaje.map.repeat.set(.25, .25);
 // teja: dos tonos comerciales mezclados por pieza (rojo óxido + gris pizarra por defecto); selector en pantalla
 const TEJAS = { 'Terracota (como el render)': ['#a4462a', '#c0603a', .5], 'Rojo vino (2 tonos)': ['#6a2420', '#843526', .5], 'Rojo óxido con gris pizarra': ['#7b3326', '#565a5e', .8], 'Gris pizarra (2 tonos)': ['#474b50', '#5e6267', .5] };
 function tejaTex(c1, c2, pr = .5){ return lienzo(512, (x, rnd, n) => {
@@ -186,7 +186,7 @@ for (const [a, b] of D.lote){ const mz = (a[1] + b[1]) / 2, hz = Math.abs(a[1] -
 segR([6.95, -15.31], [6.95, -13.65], N.terreno, N.terreno + 1.2, M.muro, .15); caja(6.85, -16.62, 7.05, -16.43, N.terreno, N.terreno + 1.5, M.muro); caja(6.85, -15.36, 7.05, -15.20, N.terreno, N.terreno + 1.5, M.muro);
 caja(6.92, -16.43, 6.98, -15.36, N.terreno + .05, N.terreno + 1.4, M.madera); for (let k = 1; k < 5; k++) caja(6.90, -16.43, 7.0, -15.36, N.terreno + .05 + k * .27, N.terreno + .08 + k * .27, M.marco);
 // acceso principal (oriente): pilares robustos más altos que la reja, cornisa y remate piramidal del color de las molduras, arbotantes y puerta de herrería
-{ const xg = 16.71, za = -6.39, zb = -4.59, hp = N.terreno + 2.75, met = std('#2b2e31', .45, { metalness: .5 });
+{ const xg = 16.71, za = -6.39, zb = -4.59, hp = N.terreno + 2.75, met = M.herreria;
   const pir = new THREE.ConeGeometry(.51, .32, 4, 1); pir.rotateY(Math.PI / 4);
   const luz = new THREE.MeshStandardMaterial({ color: '#fff1d0', emissive: '#ffcf80', emissiveIntensity: 1.5 });
   for (const [z0, z1] of [[za - .62, za], [zb, zb + .62]]){ const zc = (z0 + z1) / 2;
@@ -483,7 +483,7 @@ for (const [x, z] of [[-8, -15], [-9, -1], [-10, 3.2], [15.5, 2.8], [3, -16], [1
   piedras.count = n; G.add(piedras); }
 // reja metálica opcional sobre la barda perimetral: barras verticales y solera superior, altura máxima 2.10 sobre el terreno
 const REJA = new THREE.Group(); REJA.visible = true; S.add(REJA);   // encendida por defecto
-{ const y0 = N.terreno + 1.2, y1 = N.terreno + 2.10, met = std('#2b2e31', .45, { metalness: .5 }), paso = .12;
+{ const y0 = N.terreno + 1.2, y1 = N.terreno + 2.10, met = M.herreria, paso = .12;
   const tramos = RJ.filter(([p, q]) => !(Math.abs((p[0] + q[0]) / 2 - 16.71) < .4 && Math.min(p[1], q[1]) > -7.05 && Math.max(p[1], q[1]) < -3.9));   // sin reja en el portón
   let nb = 0; for (const [p, q] of tramos) nb += Math.floor(Math.hypot(q[0] - p[0], q[1] - p[1]) / paso) + 1;
   const barras = new THREE.InstancedMesh(new THREE.BoxGeometry(.02, y1 - y0 - .04, .02), met, nb); barras.castShadow = true; const o = new THREE.Object3D(); let n = 0;
@@ -671,6 +671,11 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
       b.onclick = () => { const t = tejaHD(c1, c2, pr); M.teja.map.dispose(); M.teja.map = t; M.teja.bumpMap = t; M.teja.needsUpdate = true; [...tj.querySelectorAll('.tc')].forEach(x => x.classList.toggle('on', x === b)); };
       tj.appendChild(b); }
     tj.querySelector('.tc').classList.add('on'); }
+  { const lh = document.createElement('span'); lh.textContent = 'Herrería'; tj.appendChild(lh);
+    for (const [n, c] of [['Negro mate', '#26282a'], ['Gris Oxford', '#4b4f54'], ['Bronce', '#6b5536'], ['Café chocolate', '#45312a'], ['Verde inglés', '#2f4536'], ['Blanco', '#eeede8']]){
+      const b = document.createElement('button'); b.className = 'hc'; b.title = n; b.style.background = c;
+      b.onclick = () => { M.herreria.color.set(c); [...tj.querySelectorAll('.hc')].forEach(x => x.classList.toggle('on', x === b)); }; tj.appendChild(b); }
+    tj.querySelector('.hc').classList.add('on'); }
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
   const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
   nb.onclick = () => { ponerNoche(!NOCHE); nb.textContent = NOCHE ? '☀ Día' : '☾ Noche'; nb.classList.toggle('on', NOCHE); }; tj.appendChild(nb);
