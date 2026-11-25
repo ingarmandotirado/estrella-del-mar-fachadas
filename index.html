@@ -261,7 +261,8 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     else if (k === 'az' && m[0] > 7.25 && m[1] < -8.5) continue;                                                       // losa del balcón oriente: solo filo, sin pretil
     if (k === 'pa' && enR(m, BALC_E) && (m[0] > 9.3 || m[1] < -13.4)) continue;                                        // pretiles del balcón oriente: se modelan al paño de la fachada
     if (k === 'pa' && enR(m, [6.8, -13.7, 7.2, -8.4])) continue;
-    if (k === 'pa' && Math.abs(a[0] - b[0]) < .02 && Math.abs(a[1] - b[1]) < .2 && m[1] > -.2 && m[0] > .1 && m[0] < 7.99) continue;   // jambas sueltas que asomaban en el bajorrelieve sur   // muro doble de la terraza (x 6.95–7.10): se modela macizo aparte, sin barritas
+    if (k === 'pa' && Math.abs(a[0] - b[0]) < .02 && Math.abs(a[1] - b[1]) < .2 && m[1] > -.2 && m[0] > .1 && m[0] < 7.99) continue;
+    if (k === 'pb' && Math.abs(a[0] - b[0]) < .02 && Math.abs(a[1] - b[1]) < .2 && m[1] > -.2 && m[0] > 7.9 && m[0] < 9.5) continue;   // jamba suelta dentro de la ventana de esquina de PB   // jambas sueltas que asomaban en el bajorrelieve sur   // muro doble de la terraza (x 6.95–7.10): se modela macizo aparte, sin barritas
     if (k === 'pa' && enR(m, BALC_E) && m[0] > 7.05 && m[0] < 9.3 && m[1] > -13.4) continue;                       // barritas sueltas dentro de la terraza oriente                                                // retazos alrededor de la puerta del balcón                                  // pretiles del balcón oriente (5.15)                                                                  // cubo de escalera
     if (k === 'pa' && !enR(m, CASA)) top = y0 + 1.1;                                                                    // pretiles del balcón
     seg(a, b, y0, top, M.muro); }
@@ -285,7 +286,7 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (encendida){ const cc = cV + inwV * .11; seg(hzV ? [a[0], cc] : [cc, a[1]], hzV ? [b[0], cc] : [cc, b[1]], y0 + sill + .02, y0 + head - .03, M.cortina, .01); }   // cortina traslúcida
     const esq = p => Math.hypot(p[0] - 9.57, p[1] + .035) < .2;
     { const hzF = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]), ia = hzF ? 0 : 1, lo = a[ia] <= b[ia] ? a : b, hi = a[ia] <= b[ia] ? b : a;   // marco de aluminio (en la esquina corrida no lleva jamba)
-      const pa = esq(lo) ? (hzF ? [lo[0] - .06, lo[1]] : [lo[0], lo[1] - .06]) : lo, pb = esq(hi) ? (hzF ? [hi[0] + .06, hi[1]] : [hi[0], hi[1] + .06]) : hi; marcoAl(pa, pb, y0 + sill, y0 + head); }
+      const pa = esq(lo) ? (hzF ? [lo[0] - .06, lo[1]] : [lo[0], lo[1] - .06]) : lo, pb = esq(hi) ? (hzF ? [hi[0] + .06, hi[1]] : [hi[0], hi[1] + .06]) : hi; if (!esq(lo) && !esq(hi) && !(k === 'pa' && enR(m, [9.3, -6.4, 9.8, -4.6]))) marcoAl(pa, pb, y0 + sill, y0 + head); }   // ventanas de esquina y ventanal sobre el acceso: cristal limpio, sin marco
     if ((enR(m, [-.3, -13.95, 9.95, .3]) && !enR(m, [.3, -13.35, 9.3, -.3])) || (k === 'pa' && enR(m, [6.8, -13.6, 7.1, -8.6]))){                                           // moldura negra perimetral en ventanas de fachada
       const W = .18, P = .05, i = hzV ? 0 : 1, j = 1 - i;
       let lV = null; for (const [l, inw] of hzV ? [[0, -1], [-13.65, 1]] : [[0, 1], [9.6, -1]]) if (Math.abs(cV - l) < .25) lV = l;
@@ -302,9 +303,9 @@ caja(4.96, -13.62, 5.81, -13.56, N.pb, N.pb + 2.2, M.madera); caja(4.96, -13.685
 caja(2.51, -13.685, 6.97, -13.50, N.pa - .55, N.pa - .22, M.muro);
 
 // bodega del muro sur (x 4.28–5.90): puertas de louver de aluminio
-{ const [x0, x1, z] = [4.28, 5.90, -.05], xm = (x0 + x1) / 2, alu = std('#a9aeb2', .4, { metalness: .6 });
+{ const [x0, x1, z] = [4.28, 5.90, -.05], xm = (x0 + x1) / 2, alu = M.herreria;
   for (const [u, w] of [[x0 + .02, xm - .01], [xm + .01, x1 - .02]]){ caja(u, z - .03, w, z + .03, N.pb, N.pb + 2.2, alu);
-    for (let i = 0; i < 26; i++) caja(u + .03, z + .03, w - .03, z + .06, N.pb + .08 + i * .08, N.pb + .11 + i * .08, M.marco); }
+    for (let i = 0; i < 26; i++) caja(u + .03, z + .03, w - .03, z + .06, N.pb + .08 + i * .08, N.pb + .11 + i * .08, M.herreria); }
   caja(x0, -.15, x1, .035, N.pb + 2.2, N.pa - .22, M.muro); caja(x0 - .06, -.02, x1 + .06, .1, N.pb + 2.2, N.pb + 2.34, M.filo); }
 // puerta del baño (muro norte, x 0.15–0.90) y sombras en las áreas abiertas de bombas y lavandería
 caja(.15, -13.62, .90, -13.55, N.pb, N.pb + 2.2, M.madera); caja(.15, -13.685, .90, -13.50, N.pb + 2.2, N.pa - .22, M.muro);
@@ -678,9 +679,9 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
       tj.appendChild(b); }
     tj.querySelector('.tc').classList.add('on'); }
   { const lh = document.createElement('span'); lh.textContent = 'Herrería'; tj.appendChild(lh);
-    for (const [n, c] of [['Negro mate', '#26282a'], ['Gris Oxford', '#4b4f54'], ['Bronce', '#6b5536'], ['Café chocolate', '#45312a'], ['Verde inglés', '#2f4536'], ['Blanco', '#eeede8']]){
+    for (const [n, c] of [['Negro mate', '#26282a'], ['Gris Oxford', '#4b4f54'], ['Bronce', '#6b5536'], ['Café chocolate', '#45312a'], ['Verde inglés', '#2f4536'], ['Blanco', '#ffffff']]){
       const b = document.createElement('button'); b.className = 'hc'; b.title = n; b.style.background = c;
-      b.onclick = () => { M.herreria.color.set(c); [...tj.querySelectorAll('.hc')].forEach(x => x.classList.toggle('on', x === b)); }; tj.appendChild(b); }
+      b.onclick = () => { M.herreria.color.set(c); const cl = M.herreria.color, lum = .2126 * cl.r + .7152 * cl.g + .0722 * cl.b; M.herreria.metalness = lum > .5 ? .05 : .5; M.herreria.roughness = lum > .5 ? .3 : .45; [...tj.querySelectorAll('.hc')].forEach(x => x.classList.toggle('on', x === b)); }; tj.appendChild(b); }
     tj.querySelector('.hc').classList.add('on'); }
   rb.classList.toggle('on', REJA.visible); rb.onclick = () => { REJA.visible = !REJA.visible; rb.classList.toggle('on', REJA.visible); }; tj.appendChild(rb);
   const nb = document.createElement('button'); nb.className = 'rj'; nb.textContent = '☾ Noche'; nb.title = 'Vista nocturna';
