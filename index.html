@@ -271,7 +271,8 @@ for (const k of ['pb', 'pa', 'az']){ const [y0, y1] = ALT[k];
     if (k !== 'pb' && m[0] > 9.7 && enR(m, [9.6, -8.6, 10.0, -6.25])) continue;
     if (k === 'az' || (k === 'pa' && !enR(m, CASA))){ seg(a, b, y0, y0 + 1.1, M.barandal, .03); seg(a, b, y0 + 1.06, y0 + 1.12, M.herreria, .06); seg(a, b, y0, y0 + .04, M.herreria, .06); continue; }   // barandal: pasamanos y zoclo de aluminio del color de la herrería   // barandal de cristal
     let sill = L >= 1.6 ? 0 : .9, head = 2.4;
-    if (k === 'pa' && m[1] < -13.3) sill = .9;                                                                          // muro norte de la recámara: ventana normal
+    if (k === 'pa' && m[1] < -13.3) sill = .9;
+    if (k === 'pb' && m[1] > -.3 && m[0] < 4) sill = .9;                                                              // fachada sur PB, a la izquierda del louver: ventana (antepecho 0.90) como la de esquina                                                                          // muro norte de la recámara: ventana normal
     if (k === 'pa' && enR(m, [9.3, -6.4, 9.8, -4.6])) { sill = 0; head = N.az - .22 - N.pa; }                         // ventanal de piso a techo sobre el acceso                                    // ventanal alto sobre el acceso, a eje con la puerta
     const ras = (y0_, y1_) => { const hz = Math.abs(a[0] - b[0]) > Math.abs(a[1] - b[1]), c = hz ? a[1] : a[0];      // antepecho y cerramiento al paño del muro (sin abultados)
       for (const [l, inw] of hz ? [[0, -1], [-13.65, 1]] : [[0, 1], [9.6, -1]]) if (Math.abs(c - l) < .25){ const cc = l + inw * .0575;
