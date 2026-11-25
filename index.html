@@ -666,7 +666,7 @@ function ir(n, inst){ [...bar.children].forEach(b => b.classList.toggle('on', b.
     ci.oninput = () => { M.filo.color.set(ci.value); const c = M.filo.color, l = .2126 * c.r + .7152 * c.g + .0722 * c.b; M.filo.map = l > .45 ? t1 : null; M.filo.needsUpdate = true; };
     lb.appendChild(ci); tj.appendChild(lb); }
   { const lt = document.createElement('span'); lt.textContent = 'Teja'; tj.appendChild(lt);
-    for (const [n, c1, c2, pr] of [['Terracota', '#a4462a', '#c0603a', .5], ['Gris oscuro', '#4a4c4f', '#5d5f61', .55]]){ const b = document.createElement('button'); b.className = 'tc'; b.title = n;
+    for (const [n, c1, c2, pr] of [['Terracota natural', '#a4462a', '#c0603a', .5], ['Rojo tinto', '#5e1f1c', '#74302a', .5], ['Rojo colonial envejecido', '#8a3a26', '#5a3a2e', .7], ['Barro sombreado (jaspeado)', '#b5643a', '#7a3b25', .55], ['Chocolate', '#4f3226', '#664236', .5], ['Arena / ocre', '#c08a52', '#a96f3e', .5]]){ const b = document.createElement('button'); b.className = 'tc'; b.title = n;
       b.style.background = `linear-gradient(135deg, ${c1} 50%, ${c2} 50%)`;
       b.onclick = () => { const t = tejaHD(c1, c2, pr); M.teja.map.dispose(); M.teja.map = t; M.teja.bumpMap = t; M.teja.needsUpdate = true; [...tj.querySelectorAll('.tc')].forEach(x => x.classList.toggle('on', x === b)); };
       tj.appendChild(b); }
