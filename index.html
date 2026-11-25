@@ -147,7 +147,7 @@ const BALC_E = [6.95, -13.65, 9.60, -8.55];   // balcón oriente de la PA (preti
 const CASA = [0, -13.65, 9.60, 0], GAR = [6.95, -13.65, 13.85, -8.44], CUBO = [6.95, -8.55, 9.91, -6.31], BALC_O = [-2.97, -9.57, 0, -2.53];
 // terreno, lote y calle
 const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(p => p[0]), zs = pts.map(p => p[1]);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs), zn = z0 - 12;
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs), zn = z0 - 22;
   M.banqueta = std('#ffffff', .9, { map: pisoTex() }); M.banqueta.color.set('#b9bab8'); M.banqueta.map.repeat.set(1 / 1.5, 1 / 1.5);   // banqueta gris de concreto
   // lindero poniente (inclinado, con la esquina surponiente redondeada) y lindero sur, de norte a sur y luego al oriente; se prolonga al norte por el lote vecino
   const W = [[-10 + 1.3 * 12 / 9.25, zn], [-10, -16.62], [-11.3, -7.37], [-12.03, -2.21], [-11.85, -2], [-11.52, -1.55], [-11.2, -1.1], [-10.9, -.63], [-10.62, -.16], [-10.35, .33], [-10.22, .58],
@@ -157,9 +157,69 @@ const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(
   const losa = (pts, ya, yb, mat) => { const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ExtrudeGeometry(sh, { depth: yb - ya, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
     const m = add(g, mat, 0, ya, 0, false); m.castShadow = false; return m; };
   losa([...W, [x1, zn]], 0, N.terreno, M.pasto);                                                                    // lote + pasto corrido del lote vecino al norte
-  losa([...W, ...desfase(W, 1.5).reverse()], 0, N.terreno + .02, M.banqueta);                                       // banqueta de 1.50 poniente y sur, siguiendo el lindero
-  caja(x1, zn, x1 + 1.5, z1, 0, N.terreno + .02, M.banqueta, false); caja(x1, z1, x1 + 1.5, z1 + 1.5, 0, N.terreno + .02, M.banqueta, false);   // banqueta oriente y esquina
-  caja(x0 - 14, zn, x1 + 10, z1 + 10, 0, .3, M.calle, false); }   // calles: poniente (tras la alberca), sur y oriente
+  // línea punteada en la colindancia norte (fin de nuestro lote / inicio del lote vecino)
+  const blancoL = std('#ffffff', .6, { emissive: '#ffffff', emissiveIntensity: .15 });
+  for (let x = -9.9; x < x1 - .3; x += 1.0) caja(x, z0 - .26, x + .6, z0 - .14, N.terreno, N.terreno + .025, blancoL, false); }
+// entorno urbano según la referencia satelital (23°06'32"N 106°18'02"W): calles de adoquín rojo de 8 m, glorieta al surponiente,
+// franjas verdes con palmeras al poniente y frente al acceso (oriente), lote vecino al norte, casas vecinas al sur y al norte, campo de golf al fondo
+{ const yS = .28, yC = .31, AN = 8, zS = 7.52, xE = 22.35, C = [-25.5, 7.52], yB = N.terreno + .02, gris = M.banqueta;   // banqueta de 1.50 pegada al lote (sur y oriente)
+  const adoq = lienzo(256, (x, rnd, n) => { x.fillStyle = '#ad9282'; x.fillRect(0, 0, n, n);
+    for (let f = 0; f < 16; f++) for (let c = -1; c < 8; c++){ const o = f % 2 ? 16 : 0, v = rnd(); x.fillStyle = 'rgb(' + (198 + v * 24 | 0) + ',' + (152 + v * 18 | 0) + ',' + (132 + v * 14 | 0) + ')'; x.fillRect(c * 32 + o + 1, f * 16 + 1, 30, 14); } });
+  adoq.repeat.set(.5, .5); M.adoquin = std('#ffffff', .85, { map: adoq });
+  const tierra = std('#ffffff', 1, { map: noiseTex('#c4b090', .22) }); tierra.map.repeat.set(.15, .15);
+  const golf = std('#ffffff', 1, { map: pastoTex() }); golf.color.set('#d9f0c4'); golf.map.repeat.set(.15, .15);
+  caja(-90, -100, 100, 75, 0, yS, tierra, false);                                                                   // terreno natural (lotes baldíos)
+  const plano = (pts, y, mat) => { const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ShapeGeometry(sh); g.rotateX(-Math.PI / 2); const m = add(g, mat, 0, y, 0, false); m.castShadow = false; return m; };
+  plano([[-45, -100], [-6, -100], [-6, zS - 4], [-45, zS - 4]], yS + .01, M.pasto);                                 // franja verde poniente (palmeras) hasta la glorieta
+  // banquetas de 1.50 pegadas a la calle: sur (de la glorieta a la esquina), oriente, y poniente a lo largo de la calle que sale de la glorieta
+  const K = [14.35, -.5];                                                                                          // centro de la esquina curva sureste del lote
+  caja(-11.5, zS - 5.5, K[0], zS - 4, 0, yB, gris, false); caja(xE - 5.5, -100, xE - 4, K[1], 0, yB, gris, false);   // banquetas sur y oriente pegadas al lote
+  { const q = (r0, r1, y, mat) => { const g = r0 ? new THREE.RingGeometry(r0, r1, 24, 1, -Math.PI / 2, Math.PI / 2) : new THREE.CircleGeometry(r1, 24, -Math.PI / 2, Math.PI / 2); g.rotateX(-Math.PI / 2);
+      const u = g.attributes.uv, ps = g.attributes.position; for (let i = 0; i < u.count; i++) u.setXY(i, ps.getX(i) + K[0], ps.getZ(i) + K[1]); const m = add(g, mat, K[0], y, K[1], false); m.castShadow = false; };
+    const rc = new THREE.Mesh(uvMundo(new THREE.BoxGeometry(xE - 4 - K[0], .02, zS - 4 - K[1]), (xE - 4 + K[0]) / 2, yC - .01, (zS - 4 + K[1]) / 2), M.adoquin); rc.position.set((xE - 4 + K[0]) / 2, yC - .01, (zS - 4 + K[1]) / 2); rc.receiveShadow = true; G.add(rc);   // calle en la esquina
+    q(2.52, 4.02, yB, gris); }                                                                                   // esquina sureste redondeada                                                           // área verde y banqueta redondeadas
+   // entrada de autos y andador del acceso cruzando el área verde
+  { const eje = [[-23.5, -16.6], [-20, -45], [-16, -100]], d0 = Math.hypot(eje[0][0] - C[0], eje[0][1] - C[1]); eje.unshift([C[0] + (eje[0][0] - C[0]) * 14.2 / d0, C[1] + (eje[0][1] - C[1]) * 14.2 / d0]);
+    const of = (P, d) => P.map((q, k) => { const a = P[Math.max(0, k - 1)], b = P[Math.min(P.length - 1, k + 1)], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz); return [q[0] - dz / l * d, q[1] + dx / l * d]; });
+    plano([...of(eje, 4), ...of(eje, 5.5).reverse()], yB, gris);
+    const g = new THREE.RingGeometry(14, 15.5, 40, 1, 15 * Math.PI / 180, 59 * Math.PI / 180); g.rotateX(-Math.PI / 2);   // banqueta alrededor de la glorieta: une la del poniente con la del sur
+    const u = g.attributes.uv, ps = g.attributes.position; for (let k = 0; k < u.count; k++) u.setXY(k, ps.getX(k), ps.getZ(k)); add(g, gris, C[0], yB, C[1], false).castShadow = false; }
+  plano([[xE + 4, -100], [40, -100], [40, zS - 4], [xE + 4, zS - 4]], yS + .01, M.pasto);                               // franja verde frente al acceso (oriente)
+  plano([[-30, zS + 4], [34, zS + 4], [34, 40], [-30, 40]], yS + .01, M.pasto);                                    // jardines de las casas al sur
+  plano([[-90, 40], [100, 40], [100, 75], [-90, 75]], yS + .01, golf);                                             // campo de golf
+  const calle = (a, b) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); const me = add(uvMundo(new THREE.BoxGeometry(L + AN * .6, yC - yS, AN), 0, (yS + yC) / 2, 0), M.adoquin, (a[0] + b[0]) / 2, (yS + yC) / 2, (a[1] + b[1]) / 2, false); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
+  calle([C[0], zS], [100, zS]); calle([xE, zS], [xE, -100]); calle([44, zS], [44, -100]);                          // calle sur, calle oriente y la siguiente al oriente
+  calle(C, [-23.5, -16.6]); calle([-23.5, -16.6], [-20, -45]); calle([-20, -45], [-16, -100]);                       // calle que sale de la glorieta al norte (tras la franja verde poniente)
+  calle(C, [-90, -6]); calle(C, [-75, 45]);                                                                         // salidas poniente y surponiente
+  { const g = new THREE.RingGeometry(6, 14, 72); g.rotateX(-Math.PI / 2); { const u = g.attributes.uv, q = g.attributes.position; for (let i = 0; i < u.count; i++) u.setXY(i, q.getX(i), q.getZ(i)); } const m = add(g, M.adoquin, C[0], yC + .004, C[1], false); m.castShadow = false;   // glorieta
+    add(new THREE.CylinderGeometry(6, 6, .25, 56), M.pasto, C[0], yC + .125, C[1], false);
+    add(new THREE.CylinderGeometry(6.15, 6.15, .22, 56, 1, true), std('#d8d2c6', .9), C[0], yC + .11, C[1], false); }
+  // palmeras (instanciadas): tronco y corona de 9 hojas arqueadas
+  const P = [], palma = (x, z, h, y = yS) => P.push([x, z, h, y]);
+  const lx = z => -10 + (z + 16.62) * -.1405;
+  for (let z = -58; z <= -5; z += 6.5){ const xr = z > -16.6 ? -19.5 - (z + 16.6) * .083 : -19.5 + (-16.6 - z) * .123, xl = lx(z) - 1.6;
+    palma(xl - (xl - xr) * .3, z, 6 + Math.abs(z * 7 % 3)); palma(xl - (xl - xr) * .72, z + 3.2, 7 + Math.abs(z * 3 % 2)); palma(xr - 11, z + 1.5, 6.5); }
+  for (let z = -58; z <= 0; z += 7){ palma(29.5, z, 6.5 + Math.abs(z * 5 % 2)); palma(36.5, z + 3.5, 7.2); }
+  palma(C[0], C[1], 7.5, yC + .25); for (let k = 0; k < 3; k++) palma(C[0] + Math.cos(k * 2.1) * 3.2, C[1] + Math.sin(k * 2.1) * 3.2, 3.8, yC + .25);
+  for (const x of [-20, -4, 10, 26]) palma(x, 39, 8);                                                              // borde del golf
+  const tg = new THREE.CylinderGeometry(.13, .2, 1, 7); tg.translate(0, .5, 0);
+  const fr = []; for (let i = 0; i < 9; i++){ const g = new THREE.PlaneGeometry(.6, 2.6, 1, 6).toNonIndexed(), q = g.attributes.position;
+    for (let k = 0; k < q.count; k++){ const t = (q.getY(k) + 1.3) / 2.6; q.setXYZ(k, q.getX(k) * (1 - t * .75), .55 * t - 1.35 * t * t, t * 2.6); }
+    g.rotateY(i / 9 * Math.PI * 2 + (i % 2) * .2); fr.push(...q.array); }
+  const cg = new THREE.BufferGeometry(); cg.setAttribute('position', new THREE.Float32BufferAttribute(fr, 3)); cg.computeVertexNormals();
+  const tron = new THREE.InstancedMesh(tg, std('#8f7b62', .95), P.length), cor = new THREE.InstancedMesh(cg, std('#5f8d3e', .85, { side: THREE.DoubleSide, flatShading: true }), P.length);
+  const o = new THREE.Object3D(); P.forEach(([x, z, h, y], i) => { const lean = (i % 3 - 1) * .05; o.position.set(x, y, z); o.rotation.set(0, 0, lean); o.scale.set(1, h, 1); o.updateMatrix(); tron.setMatrixAt(i, o.matrix);
+    const s = .7 + h / 12; o.position.set(x - Math.sin(lean) * h, y + h * Math.cos(lean), z); o.rotation.set(0, i * 2.3, 0); o.scale.set(s, s, s); o.updateMatrix(); cor.setMatrixAt(i, o.matrix); });
+  tron.castShadow = cor.castShadow = true; G.add(tron, cor);
+  // casas vecinas (volumetría sencilla): aplanado claro, ventanas oscuras al frente y techo de teja a cuatro aguas en parte del volumen
+  const blanco = std('#efe7da', .9, { map: t1 }), vid = std('#3b4a52', .2, { metalness: .3 }), tejaV = M.teja.clone();
+  const casa = (x0, z0, x1, z1, fr) => { const h = 6.6, y = yS; caja(x0, z0, x1, z1, y, y + h, blanco);
+    caja(x0 - .1, z0 - .1, x1 + .1, z1 + .1, y + h, y + h + .12, M.filo);
+    const w = (x1 - x0) * .55, d = (z1 - z0) * .6, cx = x0 + w / 2, cz = fr < 0 ? z0 + d / 2 : z1 - d / 2;
+    const g = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4); g.rotateY(Math.PI / 4); const m = add(g, tejaV, cx, y + h + .85, cz); m.scale.set(w + .4, 1.6, d + .4);
+    const zf = fr < 0 ? z0 - .03 : z1 + .03; for (const yy of [y + 1.0, y + 4.2]) for (let xx = x0 + 1; xx < x1 - 1.6; xx += 2.6) caja(xx, zf - .03, xx + 1.5, zf + .03, yy, yy + 1.7, vid); };
+  casa(-2, 17, 9, 30, -1); casa(12, 17, 24, 32, -1); casa(-24, 25, -16.5, 38, -1); casa(-15.5, 24, -7, 37, -1);
+  casa(-18, -52, 2, -41, 1); }
 const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) return;
   const me = add(uvMundo(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), 0, (y0 + y1) / 2, 0), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
