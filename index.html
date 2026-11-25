@@ -156,7 +156,8 @@ const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(
     let nx = nn.reduce((t, n) => t + n[0], 0), nz = nn.reduce((t, n) => t + n[1], 0); const l = Math.hypot(nx, nz); nx /= l; nz /= l; const c = nx * nn[0][0] + nz * nn[0][1]; return [p[0] + nx * d / c, p[1] + nz * d / c]; });
   const losa = (pts, ya, yb, mat) => { const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z))); const g = new THREE.ExtrudeGeometry(sh, { depth: yb - ya, bevelEnabled: false }); g.rotateX(-Math.PI / 2);
     const m = add(g, mat, 0, ya, 0, false); m.castShadow = false; return m; };
-  losa([...W, [x1, zn]], 0, N.terreno, M.pasto);                                                                    // lote + pasto corrido del lote vecino al norte
+  losa([...W.slice(1), [x1, z0]], 0, N.terreno, M.pasto);                                                          // nuestro lote
+  { const arena = std('#ffffff', 1, { map: noiseTex('#dccaa6', .2) }); arena.map.repeat.set(.25, .25); losa([W[0], W[1], [x1, z0], [x1, zn]], 0, N.terreno - .01, arena); }   // lote vecino al norte (baldío, arena)                                                                    // lote + pasto corrido del lote vecino al norte
   // línea punteada en la colindancia norte (fin de nuestro lote / inicio del lote vecino)
   const blancoL = std('#ffffff', .6, { emissive: '#ffffff', emissiveIntensity: .15 });
   for (let x = -9.9; x < x1 - .3; x += 1.0) caja(x, z0 - .26, x + .6, z0 - .14, N.terreno, N.terreno + .025, blancoL, false); }
@@ -219,7 +220,7 @@ const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(
     const g = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4); g.rotateY(Math.PI / 4); const m = add(g, tejaV, cx, y + h + .85, cz); m.scale.set(w + .4, 1.6, d + .4);
     const zf = fr < 0 ? z0 - .03 : z1 + .03; for (const yy of [y + 1.0, y + 4.2]) for (let xx = x0 + 1; xx < x1 - 1.6; xx += 2.6) caja(xx, zf - .03, xx + 1.5, zf + .03, yy, yy + 1.7, vid); };
   casa(-2, 17, 9, 30, -1); casa(12, 17, 24, 32, -1); casa(-24, 25, -16.5, 38, -1); casa(-15.5, 24, -7, 37, -1);
-  casa(-18, -52, 2, -41, 1); }
+  casa(0, -52, 12, -41, 1); }
 const segR = (a, b, y0, y1, mat, e = .15) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < .01) return;
   const me = add(uvMundo(new THREE.BoxGeometry(L + e * .6, y1 - y0, e), 0, (y0 + y1) / 2, 0), mat, (a[0] + b[0]) / 2, (y0 + y1) / 2, (a[1] + b[1]) / 2); me.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]); };
 const RJ = [];   // tramos de barda perimetral que llevan reja (no la bardita de servicio norte)
