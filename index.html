@@ -200,7 +200,7 @@ const lote = new THREE.Shape(); { const pts = D.lote.flat(); const xs = pts.map(
   const lx = z => -10 + (z + 16.62) * -.1405;
   for (let z = -58; z <= -5; z += 6.5){ const xr = z > -16.6 ? -19.5 - (z + 16.6) * .083 : -19.5 + (-16.6 - z) * .123, xl = lx(z) - 1.6;
     palma(xl - (xl - xr) * .3, z, 6 + Math.abs(z * 7 % 3)); palma(xl - (xl - xr) * .72, z + 3.2, 7 + Math.abs(z * 3 % 2)); palma(xr - 11, z + 1.5, 6.5); }
-  for (let z = -58; z <= 0; z += 7){ palma(29.5, z, 6.5 + Math.abs(z * 5 % 2)); palma(36.5, z + 3.5, 7.2); }
+  for (let z = -58; z <= 0; z += 7) palma(36.5, z + 3.5, 7.2);   // franja oriente: solo la hilera de atrás, para no tapar la vista del acceso
   palma(C[0], C[1], 7.5, yC + .25); for (let k = 0; k < 3; k++) palma(C[0] + Math.cos(k * 2.1) * 3.2, C[1] + Math.sin(k * 2.1) * 3.2, 3.8, yC + .25);
   for (const x of [-20, -4, 10, 26]) palma(x, 39, 8);                                                              // borde del golf
   const tg = new THREE.CylinderGeometry(.13, .2, 1, 7); tg.translate(0, .5, 0);
